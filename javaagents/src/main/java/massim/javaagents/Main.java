@@ -15,7 +15,6 @@ public class Main {
     public static void main( String[] args ) {
 
         String configDir = "";
-
         System.out.println("PHASE 1: INSTANTIATING SCHEDULER");
         if (args.length != 0) configDir = args[0];
         else {

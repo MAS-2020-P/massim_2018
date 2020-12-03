@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/eismassim/eismassim.iml" filepath="$PROJECT_DIR$/eismassim/eismassim.iml" />
+      <module fileurl="file://$PROJECT_DIR$/javaagents/javaagents.iml" filepath="$PROJECT_DIR$/javaagents/javaagents.iml" />
+      <module fileurl="file://$PROJECT_DIR$/massim.iml" filepath="$PROJECT_DIR$/massim.iml" />
+      <module fileurl="file://$PROJECT_DIR$/monitor/monitor.iml" filepath="$PROJECT_DIR$/monitor/monitor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/protocol/protocol.iml" filepath="$PROJECT_DIR$/protocol/protocol.iml" />
+      <module fileurl="file://$PROJECT_DIR$/server/server.iml" filepath="$PROJECT_DIR$/server/server.iml" />
+    </modules>
+  </component>
+</project>

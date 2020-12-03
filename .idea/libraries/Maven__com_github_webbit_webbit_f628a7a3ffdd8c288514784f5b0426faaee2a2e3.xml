@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.webbit:webbit:f628a7a3ffdd8c288514784f5b0426faaee2a2e3">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/webbit/webbit/f628a7a3ffdd8c288514784f5b0426faaee2a2e3/webbit-f628a7a3ffdd8c288514784f5b0426faaee2a2e3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/webbit/webbit/f628a7a3ffdd8c288514784f5b0426faaee2a2e3/webbit-f628a7a3ffdd8c288514784f5b0426faaee2a2e3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/webbit/webbit/f628a7a3ffdd8c288514784f5b0426faaee2a2e3/webbit-f628a7a3ffdd8c288514784f5b0426faaee2a2e3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

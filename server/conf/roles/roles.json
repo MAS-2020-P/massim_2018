@@ -8,8 +8,8 @@
     "maxBattery" : 40,
     "baseSkill" : 1,
     "maxSkill" : 3,
-    "baseVision" : 600,
-    "maxVision" : 1000,
+    "baseVision" : 60000000,
+    "maxVision" : 1000000000,
     "roads" : ["air"]
   },
   "motorcycle" : {
