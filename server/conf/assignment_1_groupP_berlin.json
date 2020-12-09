@@ -22,9 +22,9 @@
       "rechargeRate" : 0.3,
 
       "upgrades": [],
-      "roles" : "$(roles/roles.json)",
-      "entities" : [{"drone" : 1}, {"car" : 10}, {"truck" : 12}],
-      "generate" : "$(generate/generate_assignment01.json)"
+      "roles" : "$(roles/berlin_roles.json)",
+      "entities" : [{"drone" : 1}, {"car" : 1}, {"truck" : 1}],
+      "generate" : "$(generate/generate.json)"
     }
   ],
 

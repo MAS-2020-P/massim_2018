@@ -1,6 +1,6 @@
 {
   "agents" : {
-    "agentA1" : {"entity" : "connectionA1", "team" : "A", "class" : "DroneAgent"},
+    "agentA1" : {"entity" : "connectionA1", "team" : "A", "class" : "Drone"},
     "agentA2" : {"entity" : "connectionA2", "team" : "A", "class" : "DeliveryCar"},
     "agentA3" : {"entity" : "connectionA3", "team" : "A", "class" : "PickupTruck"}
   }

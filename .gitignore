@@ -11,3 +11,4 @@ monitor/src/main/resources/www/ol.css
 monitor/js/*.js
 .idea
 *.iml
+.DS_Store
