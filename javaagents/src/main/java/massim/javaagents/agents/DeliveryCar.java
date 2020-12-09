@@ -123,7 +123,7 @@ public class DeliveryCar extends Agent {
                             jobPossible = false;
                         }
                     } else {
-                        System.out.println("Job not possible!");
+                        //System.out.println("Job not possible!");
                         jobPossible = false;
                     }
                 }

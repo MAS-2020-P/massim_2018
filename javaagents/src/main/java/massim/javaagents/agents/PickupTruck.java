@@ -1,6 +1,7 @@
 package massim.javaagents.agents;
 
 import eis.iilang.*;
+import jdk.jfr.Percentage;
 import massim.javaagents.MailService;
 
 import java.util.*;
@@ -23,9 +24,11 @@ public class PickupTruck extends Agent {
     private String targetLat = "";
     private String targetLon = "";
     private String target = "";
-    private String targetItem = "";
+    private String targetVolume = "";
     private String currentLoad = "";
     private String maxLoad = "";
+    private String lastAction = "";
+    private Map<String, Percept> items = new HashMap<>();
 
     /**
      * Constructor.
@@ -50,6 +53,11 @@ public class PickupTruck extends Agent {
                         storages.putIfAbsent(String.valueOf(p.getParameters().get(0)),p);
                     }
                     break;
+                case "item":
+                    if (!ready){
+                        items.putIfAbsent(String.valueOf(p.getParameters().get(0)),p);
+                    } 
+                    break;
                 case "centerLon":
                     centerLon = String.valueOf(p.getParameters().get(0));
                     break;
@@ -65,9 +73,13 @@ public class PickupTruck extends Agent {
                 case "load":
                     currentLoad = String.valueOf(p.getParameters().get(0));
                     break;
-                case "loadMax":
+                case "maxLoad":
                     maxLoad = String.valueOf(p.getParameters().get(0));
                     break;
+                case "lastAction":
+                    lastAction = String.valueOf(p.getParameters().get(0));
+                    break;
+                    
             }
         }
 
@@ -93,24 +105,29 @@ public class PickupTruck extends Agent {
         }
 
         if (!available) {
-            if (currentLat == hqLat && currentLon == hqLon && actionQueue.isEmpty()) {
+            say("I am not available");
+            if (currentLat.equals(hqLat) && currentLon.equals(hqLon) && actionQueue.isEmpty() && lastAction != "goto") {
                 available = true;
                 targetLon = "";
                 targetLat = "";
                 target = "";
+                targetVolume = "";
+                say("Reached HQ, sending available message.");
                 Percept message = new Percept("TruckReady", new Identifier(getName()));
                 broadcast(message, getName());
-            }
-        } else if (currentLat == targetLat && currentLon == targetLon) {
-            if (actionQueue.isEmpty()) {
-                if(Float.parseFloat(maxLoad) > Float.parseFloat(currentLoad)) {
-                    actionQueue.add(new Action("gather"));
-                } else {
-                    goHome();
+            } else if (currentLat.equals(targetLat) && currentLon.equals(targetLon)) {
+                say("Reached target!");
+                if (actionQueue.isEmpty()) {
+                    if(Float.parseFloat(maxLoad) > Float.parseFloat(currentLoad) + Float.parseFloat(targetVolume)) {
+                        say("Capacity left, loading!");
+                        actionQueue.add(new Action("gather"));
+                    } else {
+                        goHome();
+                    }
                 }
             }
-        }
-
+    
+        } 
         return actionQueue.peek() != null? actionQueue.poll() : new Action("continue");
     }
 
@@ -118,13 +135,17 @@ public class PickupTruck extends Agent {
     public void handleMessage(Percept message, String sender) {
         switch (message.getName()){
             case "gatherFromNode":
+                say("Got command to pick up");
                 if(available){
                     available = false;
                     target = String.valueOf(message.getParameters().get(2));
-                    targetItem = String.valueOf(message.getParameters().get(3));
-                    targetLat = String.valueOf(message.getParameters().get(0));
-                    targetLon = String.valueOf(message.getParameters().get(1));
-                    actionQueue.add(new Action("goto", new Identifier(target)));
+                    String targetItem = String.valueOf(message.getParameters().get(3));
+                    targetVolume = String.valueOf(items.get(targetItem).getParameters().get(1));
+                    say(targetVolume.toString());
+                    targetLat = String.valueOf(message.getParameters().get(1));
+                    targetLon = String.valueOf(message.getParameters().get(0));
+                    say("Target lat:" + targetLat + " target lon: " + targetLon);
+                    actionQueue.add(new Action("goto", new Numeral(Float.parseFloat(targetLat)), new Numeral(Float.parseFloat(targetLon))));
                     break;
                 }
         }
