@@ -1,7 +1,6 @@
 package massim.javaagents.agents;
 
 import eis.iilang.*;
-import jdk.jfr.Percentage;
 import massim.javaagents.MailService;
 
 import java.util.*;
@@ -12,19 +11,14 @@ import java.util.*;
 public class PickupTruck extends Agent {
     private Boolean ready = false;
     private Boolean available = false;
-    private String hq = "";
-    private String hqLat = "";
-    private String hqLon = "";
+    private final Location hq = new Location();
+    private final Location center = new Location();
+    private Location current = new Location();
+    private Location target = new Location();
     private Queue<Action> actionQueue = new LinkedList<>();
-    private String centerLat = "";
-    private String centerLon = "";
-    private String currentLat = "";
-    private String currentLon = "";
     private Map<String, Percept> storages = new HashMap<>();
-    private String targetLat = "";
-    private String targetLon = "";
-    private String target = "";
     private String targetVolume = "";
+    private String targetItem = "";
     private String currentLoad = "";
     private String maxLoad = "";
     private String lastAction = "";
@@ -59,16 +53,16 @@ public class PickupTruck extends Agent {
                     } 
                     break;
                 case "centerLon":
-                    centerLon = String.valueOf(p.getParameters().get(0));
+                    center.lon = String.valueOf(p.getParameters().get(0));
                     break;
                 case "centerLat":
-                    centerLat = String.valueOf(p.getParameters().get(0));
+                    center.lat = String.valueOf(p.getParameters().get(0));
                     break;
                 case "lon":
-                    currentLon = String.valueOf(p.getParameters().get(0));
+                    current.lon = String.valueOf(p.getParameters().get(0));
                     break;
                 case "lat":
-                    currentLat = String.valueOf(p.getParameters().get(0));
+                    current.lat = String.valueOf(p.getParameters().get(0));
                     break;
                 case "load":
                     currentLoad = String.valueOf(p.getParameters().get(0));
@@ -84,38 +78,41 @@ public class PickupTruck extends Agent {
         }
 
         if (!ready) {
-            System.out.println("First step, finding most central storage. Center Lat " + centerLat + " center Lon " + centerLon);
+            System.out.println("First step, finding most central storage. Center Lat " + center.lat + " center Lon " + center.lon);
             Float minDif = Float.MAX_VALUE;
             for (Percept s: storages.values()){
                 Float newLat = Float.parseFloat(String.valueOf(s.getParameters().get(1)));
                 Float newLon = Float.parseFloat(String.valueOf(s.getParameters().get(2)));
-                Float newDif = Math.abs(Float.parseFloat(centerLat) - newLat) + Math.abs(Float.parseFloat(centerLon) - newLon);
+                Float newDif = Math.abs(Float.parseFloat(center.lat) - newLat) + Math.abs(Float.parseFloat(center.lon) - newLon);
                 actionQueue.add(new Action("goto", new Identifier(String.valueOf(s.getParameters().get(0)))));
                 if (newDif<minDif) {
                     minDif = newDif;
-                    hq = String.valueOf(s.getParameters().get(0));
-                    hqLat = String.valueOf(s.getParameters().get(1));
-                    hqLon = String.valueOf(s.getParameters().get(2));
+                    hq.id = String.valueOf(s.getParameters().get(0));
+                    hq.lat = String.valueOf(s.getParameters().get(1));
+                    hq.lon = String.valueOf(s.getParameters().get(2));
                 }
             }
-            System.out.println("HQ will be " + hq + " at " + hqLat + ";" + hqLon);
+            System.out.println("HQ will be " + hq + " at " + hq.lat + ";" + hq.lon);
             ready = true;
             goHome();
 
         }
 
         if (!available) {
-            say("I am not available");
-            if (currentLat.equals(hqLat) && currentLon.equals(hqLon) && actionQueue.isEmpty() && lastAction != "goto") {
-                available = true;
-                targetLon = "";
-                targetLat = "";
-                target = "";
-                targetVolume = "";
-                say("Reached HQ, sending available message.");
-                Percept message = new Percept("TruckReady", new Identifier(getName()));
-                broadcast(message, getName());
-            } else if (currentLat.equals(targetLat) && currentLon.equals(targetLon)) {
+            if (current.lat.equals(hq.lat) && current.lon.equals(hq.lon) && actionQueue.isEmpty() && !lastAction.equals("goto")) {
+                if (currentLoad.equals("0")) {
+                    available = true;
+                    target.lon = "";
+                    target.lat = "";
+                    target.id = "";
+                    targetVolume = "";
+                    say("Reached HQ, sending available message.");
+                    Percept message = new Percept("TruckReady", new Identifier(getName()));
+                    broadcast(message, getName());
+                } else {
+                    actionQueue.add(new Action("store", new Identifier(targetItem), new Numeral(Integer.valueOf(currentLoad)/Integer.valueOf(targetVolume))));
+                }
+            } else if (current.lat.equals(target.lat) && current.lon.equals(target.lon)) {
                 say("Reached target!");
                 if (actionQueue.isEmpty()) {
                     if(Float.parseFloat(maxLoad) > Float.parseFloat(currentLoad) + Float.parseFloat(targetVolume)) {
@@ -138,58 +135,19 @@ public class PickupTruck extends Agent {
                 say("Got command to pick up");
                 if(available){
                     available = false;
-                    target = String.valueOf(message.getParameters().get(2));
-                    String targetItem = String.valueOf(message.getParameters().get(3));
+                    target.id = String.valueOf(message.getParameters().get(2));
+                    targetItem = String.valueOf(message.getParameters().get(3));
                     targetVolume = String.valueOf(items.get(targetItem).getParameters().get(1));
                     say(targetVolume.toString());
-                    targetLat = String.valueOf(message.getParameters().get(1));
-                    targetLon = String.valueOf(message.getParameters().get(0));
-                    say("Target lat:" + targetLat + " target lon: " + targetLon);
-                    actionQueue.add(new Action("goto", new Numeral(Float.parseFloat(targetLat)), new Numeral(Float.parseFloat(targetLon))));
+                    target.lat = String.valueOf(message.getParameters().get(1));
+                    target.lon = String.valueOf(message.getParameters().get(0));
+                    say("Target lat:" + target.lat + " target lon: " + target.lon);
+                    actionQueue.add(new Action("goto", new Numeral(Float.parseFloat(target.lat)), new Numeral(Float.parseFloat(target.lon))));
                     break;
                 }
         }
     }
     private void goHome() {
-        actionQueue.add(new Action("goto", new Identifier(hq)));
-    }
-    /**
-     * Tries to extract a parameter from a list of parameters.
-     * @param params the parameter list
-     * @param index the index of the parameter
-     * @return the string value of that parameter or an empty string if there is no parameter or it is not an identifier
-     */
-    public static String stringParam(List<Parameter> params, int index){
-        if(params.size() < index + 1) return "";
-        Parameter param = params.get(index);
-        if(param instanceof Identifier) return ((Identifier) param).getValue();
-        return "";
-    }
-
-    /**
-     * Tries to extract an int parameter from a list of parameters.
-     * @param params the parameter list
-     * @param index the index of the parameter
-     * @return the int value of that parameter or -1 if there is no parameter or it is not an identifier
-     */
-    private static int intParam(List<Parameter> params, int index){
-        if(params.size() < index + 1) return -1;
-        Parameter param = params.get(index);
-        if(param instanceof Numeral) return ((Numeral) param).getValue().intValue();
-        return -1;
-    }
-
-    /**
-     * Tries to extract a parameter from a percept.
-     * @param p the percept
-     * @param index the index of the parameter
-     * @return the string value of that parameter or an empty string if there is no parameter or it is not an identifier
-     */
-    private static ParameterList listParam(Percept p, int index){
-        List<Parameter> params = p.getParameters();
-        if(params.size() < index + 1) return new ParameterList();
-        Parameter param = params.get(index);
-        if(param instanceof ParameterList) return (ParameterList) param;
-        return new ParameterList();
+        actionQueue.add(new Action("goto", new Identifier(hq.id)));
     }
 }

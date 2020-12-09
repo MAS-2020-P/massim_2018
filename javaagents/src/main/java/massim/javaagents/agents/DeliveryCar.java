@@ -11,22 +11,23 @@ import java.util.*;
 
 class Job {
     String target = "";
-    Map<String, Integer> items = new HashMap<String, Integer>();
+    Map<String, Integer> items = new HashMap<>();
 
     //public Job(String target, Map items) {target=}
+}
+class Location {
+    String id = "";
+    String lat = "";
+    String lon = "";
 }
 public class DeliveryCar extends Agent {
 
     private Boolean ready = false;
-    private String hq = "";
-    private String hqLat = "";
-    private String hqLon = "";
+    private Location hq = new Location();
+    private Location center = new Location();
+    private Location current = new Location();
     private Queue<Action> actionQueue = new LinkedList<>();
-    private String centerLat = "";
-    private String centerLon = "";
     private String currentJob = "";
-    private String currentLat = "";
-    private String currentLon = "";
     private Map<String,Job> activeJobs = new HashMap<>();
     private Map<String, Integer> hqStorage = new HashMap<>();
     private Map<String, Percept> storages = new HashMap<>();
@@ -68,7 +69,7 @@ public class DeliveryCar extends Agent {
                 case "storage":
                     if (!ready){
                         storages.putIfAbsent(String.valueOf(p.getParameters().get(0)),p);
-                    } else if (String.valueOf(p.getParameters().get(0)) == hq){
+                    } else if (String.valueOf(p.getParameters().get(0)).equals(hq.id)){
                         ParameterList storedItems = listParam(p,5);
                         for (Parameter i: storedItems) {
                             String itemName = stringParam(((Function) i).getParameters(), 0);
@@ -78,42 +79,42 @@ public class DeliveryCar extends Agent {
                     }
                     break;
                 case "centerLon":
-                    centerLon = String.valueOf(p.getParameters().get(0));
+                    center.lon = String.valueOf(p.getParameters().get(0));
                     break;
                 case "centerLat":
-                    centerLat = String.valueOf(p.getParameters().get(0));
+                    center.lat = String.valueOf(p.getParameters().get(0));
                     break;
                 case "lon":
-                    currentLon = String.valueOf(p.getParameters().get(0));
+                    current.lon = String.valueOf(p.getParameters().get(0));
                     break;
                 case "lat":
-                    currentLat = String.valueOf(p.getParameters().get(0));
+                    current.lat = String.valueOf(p.getParameters().get(0));
                     break;
                 }
 
 
             }
         if (!ready) {
-            System.out.println("First step, finding most central storage. Center Lat " + centerLat + " center Lon " + centerLon);
+            System.out.println("First step, finding most central storage. Center Lat " + center.lat + " center Lon " + center.lon);
             Float minDif = Float.MAX_VALUE;
             for (Percept s: storages.values()){
                 Float newLat = Float.parseFloat(String.valueOf(s.getParameters().get(1)));
                 Float newLon = Float.parseFloat(String.valueOf(s.getParameters().get(2)));
-                Float newDif = Math.abs(Float.parseFloat(centerLat) - newLat) + Math.abs(Float.parseFloat(centerLon) - newLon);
+                Float newDif = Math.abs(Float.parseFloat(center.lat) - newLat) + Math.abs(Float.parseFloat(center.lon) - newLon);
                 actionQueue.add(new Action("goto", new Identifier(String.valueOf(s.getParameters().get(0)))));
                 if (newDif<minDif) {
                     minDif = newDif;
-                    hq = String.valueOf(s.getParameters().get(0));
-                    hqLat = String.valueOf(s.getParameters().get(1));
-                    hqLon = String.valueOf(s.getParameters().get(2));
+                    hq.id = String.valueOf(s.getParameters().get(0));
+                    hq.lat = String.valueOf(s.getParameters().get(1));
+                    hq.lon = String.valueOf(s.getParameters().get(2));
                 }
             }
-            System.out.println("HQ will be " + hq + " at " + hqLat + ";" + hqLon);
+            System.out.println("HQ will be " + hq + " at " + hq.lat + ";" + hq.lon);
             ready = true;
             goHome();
 
         }
-        if (currentJob == "") {
+        if (currentJob.equals("")) {
             for (Map.Entry<String, Job> job : activeJobs.entrySet()) {
                 Boolean jobPossible = true;
                 for (Map.Entry<String, Integer> item: job.getValue().items.entrySet()) {
@@ -145,7 +146,7 @@ public class DeliveryCar extends Agent {
                 String target = activeJobs.get(currentJob).target;
                 String targetLat = String.valueOf(storages.get(target).getParameters().get(1));
                 String targetLon = String.valueOf(storages.get(target).getParameters().get(2));
-                if (currentLat == targetLat && currentLon == targetLon) {
+                if (current.lat.equals(targetLat) && current.lon.equals(targetLon)) {
                     actionQueue.add(new Action("deliver_job", new Identifier(currentJob)));
                 } else {
                     actionQueue.add(new Action("goto", new Identifier(target)));
@@ -159,7 +160,7 @@ public class DeliveryCar extends Agent {
     }
 
     private void goHome() {
-        actionQueue.add(new Action("goto", new Identifier(hq)));
+        actionQueue.add(new Action("goto", new Identifier(hq.id)));
     }
     /**
      * Tries to extract a parameter from a list of parameters.
