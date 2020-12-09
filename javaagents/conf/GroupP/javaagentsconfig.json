@@ -1,0 +1,5 @@
+{
+  "agents" : {
+    "agentA1" : {"entity" : "connectionA1", "team" : "A", "class" : "Drone"}
+  }
+}
