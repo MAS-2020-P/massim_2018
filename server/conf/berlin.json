@@ -1,5 +1,5 @@
 {
-  "server" : "$(server/berlin_server.json)",
+  "server" : "$(server/server.json)",
 
   "match" : [
     {
@@ -16,19 +16,18 @@
       "centerLat" : 52.5,
       "proximity" : 5,
       "cellSize" : 200,
-      "randomSeed" : 15,
+      "randomSeed" : 18,
       "randomFail" : 1,
       "gotoCost" : 1,
       "rechargeRate" : 0.3,
 
-      "upgrades": [],
       "roles" : "$(roles/roles.json)",
       "entities" : [{"drone" : 1}, {"car" : 10}, {"truck" : 12}],
-      "generate" : "$(generate/generate_assignment01.json)"
+      "generate" : "$(generate/generate.json)"
     }
   ],
 
   "teams" : {
-    "A" : "$(teams/assignment01.json)"
+    "A" : "$(teams/A.json)"
   }
 }
