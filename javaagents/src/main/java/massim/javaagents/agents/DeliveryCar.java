@@ -120,7 +120,7 @@ public class DeliveryCar extends Agent {
                 for (Map.Entry<String, Integer> item: job.getValue().items.entrySet()) {
                     if (hqStorage.containsKey(item.getKey())) {
                         if (hqStorage.get(item.getKey()) < item.getValue()){
-                            System.out.println("Job not possible!");
+                            say("Job not possible!");
                             jobPossible = false;
                         }
                     } else {
@@ -139,7 +139,7 @@ public class DeliveryCar extends Agent {
 
         } else {
             if (!activeJobs.containsKey(currentJob)) {
-                System.out.println("Job no longer available, returning to base!");
+                say("Job no longer available, returning to base!");
                 goHome();
                 currentJob = "";
             } else if (actionQueue.isEmpty()){

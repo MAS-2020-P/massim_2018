@@ -7,8 +7,8 @@
   "rewardScale": 15,
   "rewardModMin": 100,
   "rewardModMax": 300,
-  "itemCountMin": 4,
-  "itemCountMax": 40,
+  "itemCountMin": 1,
+  "itemCountMax": 4,
   "auctions": {
     "auctionTime": 5
   }

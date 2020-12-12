@@ -106,17 +106,17 @@ public class PickupTruck extends Agent {
                     target.lat = "";
                     target.id = "";
                     targetVolume = "";
-                    say("Reached HQ, sending available message.");
+                    // say("Reached HQ, sending available message.");
                     Percept message = new Percept("TruckReady", new Identifier(getName()));
                     broadcast(message, getName());
                 } else {
                     actionQueue.add(new Action("store", new Identifier(targetItem), new Numeral(Integer.valueOf(currentLoad)/Integer.valueOf(targetVolume))));
                 }
             } else if (current.lat.equals(target.lat) && current.lon.equals(target.lon)) {
-                say("Reached target!");
+                // say("Reached target!");
                 if (actionQueue.isEmpty()) {
                     if(Float.parseFloat(maxLoad) > Float.parseFloat(currentLoad) + Float.parseFloat(targetVolume)) {
-                        say("Capacity left, loading!");
+                        // say("Capacity left, loading!");
                         actionQueue.add(new Action("gather"));
                     } else {
                         goHome();
@@ -132,16 +132,16 @@ public class PickupTruck extends Agent {
     public void handleMessage(Percept message, String sender) {
         switch (message.getName()){
             case "gatherFromNode":
-                say("Got command to pick up");
+                // say("Got command to pick up");
                 if(available){
                     available = false;
                     target.id = String.valueOf(message.getParameters().get(2));
                     targetItem = String.valueOf(message.getParameters().get(3));
                     targetVolume = String.valueOf(items.get(targetItem).getParameters().get(1));
-                    say(targetVolume.toString());
+                    // say(targetVolume.toString());
                     target.lat = String.valueOf(message.getParameters().get(1));
                     target.lon = String.valueOf(message.getParameters().get(0));
-                    say("Target lat:" + target.lat + " target lon: " + target.lon);
+                    // say("Target lat:" + target.lat + " target lon: " + target.lon);
                     actionQueue.add(new Action("goto", new Numeral(Float.parseFloat(target.lat)), new Numeral(Float.parseFloat(target.lon))));
                     break;
                 }
