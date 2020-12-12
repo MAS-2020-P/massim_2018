@@ -1,6 +1,23 @@
+Fundamentals of Multi-Agent Technologies Assigment 01 Group P
+==============================================================
+
++ Build the project as described in [Building MASSim](#building-massim)
++ To start the server run ` java -jar server/target/server-2018-1.2-jar-with-dependencies.jar -conf server/conf/SampleConfig-CheapWells.json --monitor`
++ To start the agents run `java -jar javaagents/target/javaagents-2018-1.0-jar-with-dependencies.jar javaagents/conf/GroupP`
++ To run a replay run `java -jar monitor/target/monitor-2018-1.2-jar-with-dependencies.jar --port 8081 server/$selectReplayDir`
+
+#### Modify the following parameters to your liking
+
++ [eismansimconfig.json](javaagents/conf/GroupP/eismassimconfig.json) - add one connection per agent
++ [javaagentsconfig.json](javaagents/conf/GroupP/javaagentsconfig.json) - add one entry per agent to define the agent instance
++ [server.json](server/conf/server/server.json) - to adapt the team size
++ [A.json](server/conf/teams/A.json) - add one entry per agent
++ [SampleConfig-CheapWells.json](server/conf/SampleConfig-CheapWells.json) - configure randomSeed and the number of agents per role
+
+[Link to the code repository](https://github.com/MAS-2020-P/massim_2018)
+
 MASSim 2016-2018: Agents in the City
 ====================================
-
 [![Build Status](https://travis-ci.org/agentcontest/massim_2018.svg?branch=master)](https://travis-ci.org/agentcontest/massim_2018)
 
 _MASSim_ (Multi-Agent Systems Simulation Platform), the simulation (server)
@@ -22,9 +39,7 @@ Download
 
 We upload **binary releases** to GitHub: https://github.com/agentcontest/massim/releases
 
-Building MASSim
----------------
-
+## Building MASSim
 The build requires Maven.
 
 Run `mvn package` in the main directory. Maven should automatically
