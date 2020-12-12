@@ -28,8 +28,8 @@
   "car" : {
     "baseSpeed" : 3,
     "maxSpeed" : 5,
-    "baseLoad" : 50,
-    "maxLoad" : 150,
+    "baseLoad" : 50000,
+    "maxLoad" : 150000,
     "baseBattery" : 40000,
     "maxBattery" : 80000,
     "baseSkill" : 8,
