@@ -13,7 +13,7 @@
       "scenarioClass" : "city.CitySimulation",
       "steps" : 1000,
       "map" : "paris",
-      "seedCapital" : 5000,
+      "seedCapital" : 0,
       "minLon" : 2.26,
       "maxLon" : 2.41,
       "minLat" : 48.82,
