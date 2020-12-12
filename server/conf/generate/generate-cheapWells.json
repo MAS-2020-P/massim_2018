@@ -40,16 +40,16 @@
     }
   },
   "items" : {
-    "resourcesMin" : 5,
-    "resourcesMax" : 5,
+    "resourcesMin" : 0,
+    "resourcesMax" : 0,
     "levelDecreaseMin" : 1,
     "levelDecreaseMax" : 1,
     "graphDepthMin" : 3,
     "graphDepthMax" : 3,
     "volMin" : 5,
     "volMax" : 10,
-    "partsMin" : 3,
-    "partsMax" : 5
+    "partsMin" : 0,
+    "partsMax" : 0
   },
   "jobs" : "$(jobs/diverseJobs.json)"
 }

@@ -26,6 +26,7 @@ public class DeliveryCar extends Agent {
     private Location hq = new Location();
     private Location center = new Location();
     private Location current = new Location();
+    private Location target = new Location();
     private Queue<Action> actionQueue = new LinkedList<>();
     private String currentJob = "";
     private Map<String,Job> activeJobs = new HashMap<>();
@@ -101,7 +102,6 @@ public class DeliveryCar extends Agent {
                 Float newLat = Float.parseFloat(String.valueOf(s.getParameters().get(1)));
                 Float newLon = Float.parseFloat(String.valueOf(s.getParameters().get(2)));
                 Float newDif = Math.abs(Float.parseFloat(center.lat) - newLat) + Math.abs(Float.parseFloat(center.lon) - newLon);
-                actionQueue.add(new Action("goto", new Identifier(String.valueOf(s.getParameters().get(0)))));
                 if (newDif<minDif) {
                     minDif = newDif;
                     hq.id = String.valueOf(s.getParameters().get(0));
@@ -114,15 +114,17 @@ public class DeliveryCar extends Agent {
             goHome();
 
         }
-        if (currentJob.equals("")) {
+        if (currentJob.equals("") && current.lat.equals(hq.lat) && current.lon.equals(hq.lon)) {
             for (Map.Entry<String, Job> job : activeJobs.entrySet()) {
                 Boolean jobPossible = true;
                 for (Map.Entry<String, Integer> item: job.getValue().items.entrySet()) {
                     if (hqStorage.containsKey(item.getKey())) {
-                        if (hqStorage.get(item.getKey()) < item.getValue()){
-                            say("Job not possible!");
-                            jobPossible = false;
-                        }
+                            if (hqStorage.get(item.getKey()) < item.getValue()){
+                                System.out.println("Job not possible!");
+                                jobPossible = false;
+                            } else {
+                                say("Item " + item.getKey() + " is available in enough quantity!");
+                            }
                     } else {
                         //System.out.println("Job not possible!");
                         jobPossible = false;
@@ -143,13 +145,14 @@ public class DeliveryCar extends Agent {
                 goHome();
                 currentJob = "";
             } else if (actionQueue.isEmpty()){
-                String target = activeJobs.get(currentJob).target;
-                String targetLat = String.valueOf(storages.get(target).getParameters().get(1));
-                String targetLon = String.valueOf(storages.get(target).getParameters().get(2));
-                if (current.lat.equals(targetLat) && current.lon.equals(targetLon)) {
+                target.id = activeJobs.get(currentJob).target;
+                say(String.valueOf(activeJobs.get(currentJob).items.entrySet()));
+                target.lat = String.valueOf(storages.get(target.id).getParameters().get(1));
+                target.lon = String.valueOf(storages.get(target.id).getParameters().get(2));
+                if (current.lat.equals(target.lat) && current.lon.equals(target.lon)) {
                     actionQueue.add(new Action("deliver_job", new Identifier(currentJob)));
                 } else {
-                    actionQueue.add(new Action("goto", new Identifier(target)));
+                    actionQueue.add(new Action("goto", new Identifier(target.id)));
                 }
             }
         }

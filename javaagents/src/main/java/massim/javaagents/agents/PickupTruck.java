@@ -84,7 +84,6 @@ public class PickupTruck extends Agent {
                 Float newLat = Float.parseFloat(String.valueOf(s.getParameters().get(1)));
                 Float newLon = Float.parseFloat(String.valueOf(s.getParameters().get(2)));
                 Float newDif = Math.abs(Float.parseFloat(center.lat) - newLat) + Math.abs(Float.parseFloat(center.lon) - newLon);
-                actionQueue.add(new Action("goto", new Identifier(String.valueOf(s.getParameters().get(0)))));
                 if (newDif<minDif) {
                     minDif = newDif;
                     hq.id = String.valueOf(s.getParameters().get(0));

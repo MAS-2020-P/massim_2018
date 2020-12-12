@@ -29,7 +29,7 @@
 
       "upgrades" : "$(upgrades/upgrades.json)",
       "roles" : "$(roles/roles.json)",
-      "entities" : [{"drone" : 1}, {"car" : 1}, {"truck" : 1}],
+      "entities" : [{"drone" : 1}, {"car" : 1}, {"truck" : 2}],
       "generate" : "$(generate/generate_assignment01.json)"
     }
   ],
