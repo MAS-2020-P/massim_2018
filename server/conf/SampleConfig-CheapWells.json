@@ -13,7 +13,7 @@
       "scenarioClass" : "city.CitySimulation",
       "steps" : 1000,
       "map" : "paris",
-      "seedCapital" : 5000,
+      "seedCapital" : 0,
       "minLon" : 2.26,
       "maxLon" : 2.41,
       "minLat" : 48.82,
@@ -23,19 +23,18 @@
       "proximity" : 5,
       "cellSize" : 200,
       "randomSeed" : 18,
-      "randomFail" : 1,
+      "randomFail" : 0,
       "gotoCost" : 1,
       "rechargeRate" : 0.3,
 
       "upgrades" : "$(upgrades/upgrades.json)",
       "roles" : "$(roles/roles.json)",
-      "entities" : [{"drone" : 4}, {"motorcycle" : 8}, {"car" : 10}, {"truck" : 12}],
-      "generate" : "$(generate/generate-cheapWells.json)"
+      "entities" : [{"drone" : 1}, {"car" : 1}, {"truck" : 2}],
+      "generate" : "$(generate/generate_assignment01.json)"
     }
   ],
 
   "teams" : {
-    "A" : "$(teams/A.json)",
-    "B" : "$(teams/B.json)"
+    "A" : "$(teams/A.json)"
   }
 }

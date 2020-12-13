@@ -9,10 +9,7 @@ import eis.exceptions.RelationException;
 import eis.iilang.EnvironmentState;
 import eis.iilang.Percept;
 import massim.eismassim.EnvironmentInterface;
-import massim.javaagents.agents.Agent;
-import massim.javaagents.agents.BasicAgent;
-import massim.javaagents.agents.DummyAgent;
-import massim.javaagents.agents.WarpAgent;
+import massim.javaagents.agents.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -96,6 +93,15 @@ public class Scheduler implements AgentListener, EnvironmentListener{
                     break;
                 case "DummyAgent":
                     agent = new DummyAgent(agentConf.name, mailService);
+                    break;
+                case "Drone":
+                    agent = new Drone(agentConf.name, mailService);
+                    break;
+                case "DeliveryCar":
+                    agent = new DeliveryCar(agentConf.name, mailService);
+                    break;
+                case "PickupTruck":
+                    agent = new PickupTruck(agentConf.name, mailService);
                     break;
                 // [add further types here]
                 default:
