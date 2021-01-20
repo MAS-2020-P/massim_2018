@@ -12,6 +12,19 @@
     "maxVision" : 1000,
     "roads" : ["air"]
   },
+  "evilcorphq" : {
+  "baseSpeed" : 5,
+  "maxSpeed" : 7,
+  "baseLoad" : 15,
+  "maxLoad" : 25,
+  "baseBattery" : 9000,
+  "maxBattery" : 10000,
+  "baseSkill" : 1,
+  "maxSkill" : 3,
+  "baseVision" : 200000,
+  "maxVision" : 400000,
+  "roads" : ["air"]
+},
   "motorcycle" : {
     "baseSpeed" : 4,
     "maxSpeed" : 6,
