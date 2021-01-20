@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EvilCorpHQ extends Agent {
 
@@ -62,7 +63,16 @@ public class EvilCorpHQ extends Agent {
 
         public void handleCurrentBids(int currStep) {
             // handle the bids that came in the last step
-            LinkedList<Bid> currBids = bids.get(getBiddingRound(currStep - 1));
+            LinkedList<Bid> currBids;
+            try {
+                currBids = bids.get(getBiddingRound(currStep - 1));
+            } catch (IndexOutOfBoundsException e) {
+                // no bid came in for this job, abort
+                initiator.say("No bid received for " + jobId + " ... removing contract.");
+                initiator.closeECNPInstance(jobId, false);
+                return;
+            }
+
             Bid definiteBid = getDefinitiveBid(currBids);
             if (currBids.isEmpty()) initiator.say("eCNP Error: no bids given for " + jobId);
 
@@ -247,9 +257,9 @@ public class EvilCorpHQ extends Agent {
 
     private List<String> availableTrucks = new LinkedList<>();
     private List<ResourceNode> resourceNodes = new LinkedList<>();
-    private HashSet<Job> allJobs = new HashSet<>();
+    private HashMap<String, Job> allJobs = new HashMap<>();
     private HashMap<String, eCNPInstance> eCNPInstances = new HashMap<>();
-    private LinkedList<String> finishedECNPs;
+    private LinkedList<String> finishedECNPs = new LinkedList<>();
 //    private LinkedList<CNPInstance> CNPInstances = new LinkedList<>();
 
     // sim env vars
@@ -453,7 +463,7 @@ public class EvilCorpHQ extends Agent {
                     String id = String.valueOf(p.getParameters().get(0));
                     int reward = ((Numeral) p.getParameters().get(2)).getValue().intValue();
                     Job job = new Job(id, reward);
-                    allJobs.add(job);
+                    allJobs.put(id, job);
                 });
     }
 
@@ -516,20 +526,23 @@ public class EvilCorpHQ extends Agent {
     }
 
     private void startJobAnnouncement() {
-        // TODO: gather jobs to announce
-        LinkedList<String> jobs = new LinkedList<>();
+        // TODO: gather jobs to announce // for now all jobs that arent contracted yet
+        List<Job> jobsWOContract = allJobs.values().stream()
+                .filter(job -> !job.contracted).collect(Collectors.toList());
 
         // for each job start a new eCNP instance
-        for (String jobId : jobs) {
-            eCNPInstance inst = new eCNPInstance(jobId, this);
-            eCNPInstances.put(jobId, inst);
+        for (Job job : jobsWOContract) {
+            eCNPInstance inst = new eCNPInstance(job.id, this);
+            eCNPInstances.put(job.id, inst);
             inst.announceJob(step);
+            job.contracted = true;
         }
     }
 
     public void closeECNPInstance(String jobId, boolean success) {
         if (!success) {
-            // TODO: readd to joblist or sth?
+            // TODO: readd to joblist or sth? for now, not contracted jobs will be contracted again
+            allJobs.get(jobId).contracted = false;
         }
         finishedECNPs.add(jobId);
     }
