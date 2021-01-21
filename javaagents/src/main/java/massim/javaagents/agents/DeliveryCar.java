@@ -22,16 +22,20 @@ class Location {
 }
 public class DeliveryCar extends Agent {
 
-    private Boolean ready = false;
-    private Location hq = new Location();
     private Location center = new Location();
     private Location current = new Location();
     private Location target = new Location();
     private Queue<Action> actionQueue = new LinkedList<>();
+    private Queue<Location> targetQueue = new LinkedList<>();
+    private Queue<String> itemQueue = new LinkedList<>();
+    private Queue<String> jobQueue = new LinkedList<>();
     private String currentJob = "";
     private Map<String,Job> activeJobs = new HashMap<>();
-    private Map<String, Integer> hqStorage = new HashMap<>();
     private Map<String, Percept> storages = new HashMap<>();
+    private Map<String, List<Location>> nodes = new HashMap<>();
+    private Map<String, Float> load = new HashMap<>();
+    private Boolean available = true;
+
 
     /**
      * Constructor.
@@ -46,21 +50,18 @@ public class DeliveryCar extends Agent {
     public void handlePercept(Percept percept) {}
 
     @Override
-    public void handleMessage(Percept message, String sender) {}
-
-    @Override
     public Action step() {
 
 
-        for (Percept p: getPercepts()){
+        for (Percept p : getPercepts()) {
             //System.out.println(p.getName());
-            switch(p.getName()) {
+            switch (p.getName()) {
                 case "job":
                     //System.out.println(p);
                     Job newJob = new Job();
                     newJob.target = String.valueOf(p.getParameters().get(1));
-                    ParameterList requiredItems = listParam(p,5);
-                    for (Parameter i: requiredItems) {
+                    ParameterList requiredItems = listParam(p, 5);
+                    for (Parameter i : requiredItems) {
                         String itemName = stringParam(((Function) i).getParameters(), 0);
                         int amount = intParam(((Function) i).getParameters(), 1);
                         newJob.items.putIfAbsent(itemName, amount);
@@ -68,16 +69,7 @@ public class DeliveryCar extends Agent {
                     activeJobs.putIfAbsent(String.valueOf(p.getParameters().get(0)), newJob);
                     break;
                 case "storage":
-                    if (!ready){
-                        storages.putIfAbsent(String.valueOf(p.getParameters().get(0)),p);
-                    } else if (String.valueOf(p.getParameters().get(0)).equals(hq.id)){
-                        ParameterList storedItems = listParam(p,5);
-                        for (Parameter i: storedItems) {
-                            String itemName = stringParam(((Function) i).getParameters(), 0);
-                            int amount = intParam(((Function) i).getParameters(), 1);
-                            hqStorage.put(itemName, amount);
-                        }
-                    }
+                    storages.putIfAbsent(String.valueOf(p.getParameters().get(0)), p);
                     break;
                 case "centerLon":
                     center.lon = String.valueOf(p.getParameters().get(0));
@@ -91,79 +83,142 @@ public class DeliveryCar extends Agent {
                 case "lat":
                     current.lat = String.valueOf(p.getParameters().get(0));
                     break;
-                }
-
-
+                case "item":
+                    load.put(String.valueOf(p.getParameters().get(1)), Float.parseFloat(String.valueOf(p.getParameters().get(0))));
+                    break;
             }
-        if (!ready) {
-            System.out.println("First step, finding most central storage. Center Lat " + center.lat + " center Lon " + center.lon);
-            Float minDif = Float.MAX_VALUE;
-            for (Percept s: storages.values()){
-                Float newLat = Float.parseFloat(String.valueOf(s.getParameters().get(1)));
-                Float newLon = Float.parseFloat(String.valueOf(s.getParameters().get(2)));
-                Float newDif = Math.abs(Float.parseFloat(center.lat) - newLat) + Math.abs(Float.parseFloat(center.lon) - newLon);
-                if (newDif<minDif) {
-                    minDif = newDif;
-                    hq.id = String.valueOf(s.getParameters().get(0));
-                    hq.lat = String.valueOf(s.getParameters().get(1));
-                    hq.lon = String.valueOf(s.getParameters().get(2));
-                }
-            }
-            System.out.println("HQ will be " + hq + " at " + hq.lat + ";" + hq.lon);
-            ready = true;
-            goHome();
 
         }
-        if (currentJob.equals("") && current.lat.equals(hq.lat) && current.lon.equals(hq.lon)) {
-            for (Map.Entry<String, Job> job : activeJobs.entrySet()) {
-                Boolean jobPossible = true;
-                for (Map.Entry<String, Integer> item: job.getValue().items.entrySet()) {
-                    if (hqStorage.containsKey(item.getKey())) {
-                            if (hqStorage.get(item.getKey()) < item.getValue()){
-                                System.out.println("Job not possible!");
-                                jobPossible = false;
-                            } else {
-                                say("Item " + item.getKey() + " is available in enough quantity!");
-                            }
-                    } else {
-                        //System.out.println("Job not possible!");
-                        jobPossible = false;
-                    }
-                }
-                if (jobPossible) {
-                    currentJob = job.getKey();
-                    for (Map.Entry<String, Integer> item: job.getValue().items.entrySet()) {
-                        actionQueue.add(new Action("retrieve", new Identifier(item.getKey()), new Numeral(item.getValue())));
-                    }
-                    break;
-                }
-            }
 
-        } else {
-            if (!activeJobs.containsKey(currentJob)) {
-                say("Job no longer available, returning to base!");
-                goHome();
-                currentJob = "";
-            } else if (actionQueue.isEmpty()){
-                target.id = activeJobs.get(currentJob).target;
-                say(String.valueOf(activeJobs.get(currentJob).items.entrySet()));
-                target.lat = String.valueOf(storages.get(target.id).getParameters().get(1));
-                target.lon = String.valueOf(storages.get(target.id).getParameters().get(2));
-                if (current.lat.equals(target.lat) && current.lon.equals(target.lon)) {
-                    actionQueue.add(new Action("deliver_job", new Identifier(currentJob)));
+        if (currentJob.equals("")) {
+            if (getJob()) {
+                goToTarget();
+            }
+        } else if (!activeJobs.containsKey(currentJob)) {
+            say("Job no longer available!");
+            reset();
+        } else if (actionQueue.isEmpty() && atTarget()){
+            if (targetQueue.size() == 0) {
+                actionQueue.add(new Action("deliver_job", new Identifier(currentJob)));
+            } else {
+                if (activeJobs.get(currentJob).items.get(itemQueue.peek()) > load.get(itemQueue.peek())) {
+                    actionQueue.add(new Action("gather"));
                 } else {
-                    actionQueue.add(new Action("goto", new Identifier(target.id)));
+                    if (targetQueue.size() > 1){
+                        itemQueue.poll();
+                    }
+                    target = targetQueue.poll();
+                    goToTarget();
                 }
             }
         }
 
         activeJobs.clear();
-        hqStorage.clear();
         return actionQueue.peek() != null? actionQueue.poll() : new Action("continue");
     }
+    @Override
+    public void handleMessage(Percept message, String sender) {
+        switch (message.getName()){
+            case "gatherFromNode":
+                // say("Got command to pick up");
+                if(available){
+                    jobQueue.add(String.valueOf(message.getParameters().get(2)));
+                    break;
+                }
+            case "announceJob":
+                if(available){
+                    String newJob = String.valueOf(message.getParameters().get(2));
+                    float cost = calculateCost(newJob);
+                    Percept reply = new Percept("bid", new Identifier(getName()), new Identifier(String.valueOf(cost)));
+                    broadcast(reply, getName());
+                }
+            case "accept":
+                if(available){
+                    String newJob = String.valueOf(message.getParameters().get(2));
+                    float cost = calculateCost(newJob);
+                    Percept reply = new Percept("definitiveBid", new Identifier(getName()), new Identifier(String.valueOf(cost)));
+                    broadcast(reply, getName());
+                }
+            case "definitiveAccept":
+                if (available){
+                    jobQueue.add(String.valueOf(message.getParameters().get(2)));
+                    break;
+                }
+        }
+    }
 
-    private void goHome() {
-        actionQueue.add(new Action("goto", new Identifier(hq.id)));
+    private Location findNearest(String item, Location start) {
+        Location nearest = new Location();
+        float minDif = Float.MAX_VALUE;
+        for (Location l: nodes.get(item)) {
+            float newLat = Float.parseFloat(l.lat);
+            float newLon = Float.parseFloat(l.lon);
+            float newDif = Math.abs(Float.parseFloat(start.lat) - newLat) + Math.abs(Float.parseFloat(start.lon) - newLon);
+            if (newDif<minDif) {
+                minDif = newDif;
+                nearest = l;
+            }
+        }
+        return nearest;
+    }
+
+    private float calculateCost(String job) {
+        LinkedList<Location> targets = new LinkedList<>();
+        targets.add(current);
+        float total_distance = 0;
+        for (String item: activeJobs.get(job).items.keySet()) {
+            targetQueue.add(findNearest(item, targets.getLast()));
+        }
+        if (targets.size() == 0){
+            return 0;
+        }
+        targets.add(getStorageForJob(job));
+        Location cur = targets.poll();
+        while (!targets.isEmpty()) {
+            total_distance += calculateDistance(cur, targets.peek());
+            cur = targets.poll();
+        }
+
+
+        return total_distance;
+    }
+    private float calculateDistance(Location loc1, Location loc2) {
+        return Math.abs(Float.parseFloat(loc1.lat) - Float.parseFloat(loc2.lat) ) + Math.abs(Float.parseFloat(loc1.lon) - Float.parseFloat(loc2.lon));
+    }
+    private void goToTarget() {
+        actionQueue.add(new Action("goto", new Numeral(Float.parseFloat(target.lat)), new Numeral(Float.parseFloat(target.lon))));
+    }
+    private boolean atTarget() {
+        return target.lat.equals(current.lat) && target.lon.equals(current.lon);
+    }
+    private Location getStorageForJob(String job) {
+        Location dropoff = new Location();
+        dropoff.id = activeJobs.get(job).target;
+        dropoff.lat = String.valueOf(storages.get(activeJobs.get(job).target).getParameters().get(1));
+        dropoff.lon = String.valueOf(storages.get(activeJobs.get(job).target).getParameters().get(2));
+        return dropoff;
+    }
+    private void reset() {
+        targetQueue.clear();
+        available = true;
+        target = new Location();
+        currentJob = "";
+        actionQueue.clear();
+        Percept message = new Percept("TruckReady", new Identifier(getName()));
+        broadcast(message, getName());
+    }
+    private boolean getJob() {
+        if (jobQueue.size() > 0) {
+            currentJob = jobQueue.poll();
+            for (String item: activeJobs.get(currentJob).items.keySet()){
+                targetQueue.add(findNearest(item, current));
+                itemQueue.add(item);
+            }
+            targetQueue.add(getStorageForJob(currentJob));
+            target = targetQueue.poll();
+            return true;
+        }
+        return false;
     }
     /**
      * Tries to extract a parameter from a list of parameters.
