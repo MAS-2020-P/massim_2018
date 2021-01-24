@@ -12,6 +12,8 @@ import java.util.*;
 class Job {
     String target = "";
     Map<String, Integer> items = new HashMap<>();
+    float profit = 0;
+    float costToDo = 0;
 
     //public Job(String target, Map items) {target=}
 }
@@ -60,6 +62,7 @@ public class DeliveryCar extends Agent {
                     //System.out.println(p);
                     Job newJob = new Job();
                     newJob.target = String.valueOf(p.getParameters().get(1));
+                    newJob.profit = Float.parseFloat(String.valueOf(p.getParameters().get(2)));
                     ParameterList requiredItems = listParam(p, 5);
                     for (Parameter i : requiredItems) {
                         String itemName = stringParam(((Function) i).getParameters(), 0);
@@ -128,14 +131,14 @@ public class DeliveryCar extends Agent {
             case "announceJob":
                 if(available){
                     String newJob = String.valueOf(message.getParameters().get(2));
-                    float cost = calculateCost(newJob);
+                    float cost = calculateCost(newJob, current);
                     Percept reply = new Percept("bid", new Identifier(getName()), new Identifier(String.valueOf(cost)));
                     broadcast(reply, getName());
                 }
             case "accept":
                 if(available){
                     String newJob = String.valueOf(message.getParameters().get(2));
-                    float cost = calculateCost(newJob);
+                    float cost = calculateCost(newJob, current);
                     Percept reply = new Percept("definitiveBid", new Identifier(getName()), new Identifier(String.valueOf(cost)));
                     broadcast(reply, getName());
                 }
@@ -162,9 +165,9 @@ public class DeliveryCar extends Agent {
         return nearest;
     }
 
-    private float calculateCost(String job) {
+    private float calculateCost(String job, Location start) {
         LinkedList<Location> targets = new LinkedList<>();
-        targets.add(current);
+        targets.add(start);
         float total_distance = 0;
         for (String item: activeJobs.get(job).items.keySet()) {
             targetQueue.add(findNearest(item, targets.getLast()));
@@ -182,6 +185,32 @@ public class DeliveryCar extends Agent {
 
         return total_distance;
     }
+
+    private void calculateBids(LinkedList<String> jobs) {
+        LinkedList<String> sortedJobs = new LinkedList<>();
+        Location start = current;
+        for (String _: jobs){
+            float maxProfit = 0;
+            String bestJob = "";
+            for (String job: jobs) {
+                if (!sortedJobs.contains(job)) {
+                    float profit = activeJobs.get(job).profit / calculateCost(job, start);
+                    if (profit > maxProfit) {
+                        maxProfit = profit;
+                        bestJob = job;
+                    }
+                }
+            }
+            sortedJobs.add(bestJob);
+            start = getStorageForJob(bestJob);
+        }
+        start = current;
+        for (String job: sortedJobs) {
+            activeJobs.get(job).costToDo = calculateCost(job, start);
+            start = getStorageForJob(job);
+        }
+    }
+
     private float calculateDistance(Location loc1, Location loc2) {
         return Math.abs(Float.parseFloat(loc1.lat) - Float.parseFloat(loc2.lat) ) + Math.abs(Float.parseFloat(loc1.lon) - Float.parseFloat(loc2.lon));
     }
