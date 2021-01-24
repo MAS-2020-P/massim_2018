@@ -103,6 +103,9 @@ public class Scheduler implements AgentListener, EnvironmentListener{
                 case "PickupTruck":
                     agent = new PickupTruck(agentConf.name, mailService);
                     break;
+                case "EvilCorpHQ":
+                    agent = new EvilCorpHQ(agentConf.name, mailService);
+                    break;
                 // [add further types here]
                 default:
                     System.out.println("Unknown agent type/class " + agentConf.className);
