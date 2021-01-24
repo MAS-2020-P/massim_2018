@@ -57,7 +57,7 @@ public class EvilCorpHQ extends Agent {
         }
 
         public void handleBidMessage(String participantName, float bid, int currStep) {
-            bids.get(getBiddingRound()).add(new Bid(participantName, bid));
+            bids.get(round).add(new Bid(participantName, bid));
         }
 
         public void handleDefinitiveBidMessage(String participantName, float bid, int currStep) {
@@ -67,15 +67,16 @@ public class EvilCorpHQ extends Agent {
         public void handleCurrentBids() {
             // handle the bids that came in the last step
             LinkedList<Bid> currBids;
-            bids.add(new LinkedList<>());
             try {
-                currBids = bids.get(getBiddingRound());
+                currBids = bids.get(round);
             } catch (IndexOutOfBoundsException e) {
                 // no bid came in for this job, abort
                 initiator.say("No bid received for " + jobId + " ... removing contract.");
                 initiator.closeECNPInstance(jobId, false);
                 return;
             }
+            round++;
+            bids.add(new LinkedList<>());
 
             Bid definiteBid = getDefinitiveBid(currBids);
             if (currBids.isEmpty()) initiator.say("eCNP Error: no bids given for " + jobId);
@@ -102,8 +103,6 @@ public class EvilCorpHQ extends Agent {
             else {
                 acceptAndRejectBids(currBids);
             }
-
-            round++;
         }
 
         private HashSet<String> getAllBidders() {
