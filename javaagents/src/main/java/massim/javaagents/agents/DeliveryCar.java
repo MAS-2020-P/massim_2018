@@ -36,6 +36,7 @@ public class DeliveryCar extends Agent {
     private Map<String, Percept> storages = new HashMap<>();
     private Map<String, Map<String, Location>> nodes = new HashMap<>();
     private Map<String, Float> load = new HashMap<>();
+    private Map<String, Boolean> activeBids = new HashMap<>();
     private Boolean available = true;
 
 
@@ -106,22 +107,59 @@ public class DeliveryCar extends Agent {
                 if(available){
 
                     String newJob = String.valueOf(message.getParameters().get(0));
-                    float cost = calculateCost(newJob, current);
+                    calculateCost(newJob, current);
+                    float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
+                    break;
+                }
+            case "announceJobs":
+                if(available){
+                    ParameterList jobParams = listParam(message, 0);
+                    LinkedList<String> jobs = new LinkedList<>();
+                    for (Parameter i : jobParams) {
+                        jobs.add(String.valueOf(i));
+                    }
+                    calculateBids(jobs);
+                    for (String j : jobs) {
+                        activeBids.put(j, false);
+                        say("Bidding on job " + j + " with bid " + activeJobs.get(j).costToDo);
+                        Percept reply = new Percept("bid", new Identifier(j), new Numeral(activeJobs.get(j).costToDo));
+                        broadcast(reply, getName());
+                    }
+                    break;
                 }
             case "accept":
                 if(available){
                     String newJob = String.valueOf(message.getParameters().get(0));
-                    float cost = calculateCost(newJob, current);
+                    float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("definitiveBid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
+                    break;
                 }
             case "definitiveAccept":
                 if (available){
                     jobQueue.add(String.valueOf(message.getParameters().get(0)));
                     break;
                 }
+            case "reject":
+                String job = String.valueOf(message.getParameters().get(0));
+                if (activeJobs.get(job).costToDo < Float.parseFloat(String.valueOf(message.getParameters().get(1)))) {
+                    Percept reply = new Percept("bid", new Identifier(job), new Numeral(activeJobs.get(job).costToDo));
+                    broadcast(reply, getName());
+                } else {
+                    activeBids.put(String.valueOf(message.getParameters().get(0)), true);
+                }
+            case "definitiveReject":
+                activeBids.remove(String.valueOf(message.getParameters().get(0)));
+                calculateBids((LinkedList<String>) activeJobs.keySet());
+                for (String j : activeBids.keySet()) {
+                    if(activeBids.get(j)) {
+                        Percept reply = new Percept("bid", new Identifier(j), new Numeral(activeJobs.get(j).costToDo));
+                        broadcast(reply, getName());
+                    }
+                }
+
         }
     }
 
@@ -140,7 +178,7 @@ public class DeliveryCar extends Agent {
         return nearest;
     }
 
-    private float calculateCost(String job, Location start) {
+    private void calculateCost(String job, Location start) {
         LinkedList<Location> targets = new LinkedList<>();
         targets.add(start);
         float total_distance = 0;
@@ -151,7 +189,7 @@ public class DeliveryCar extends Agent {
             targets.add(findNearest(item, targets.getLast()));
         }
         if (targets.size() == 0){
-            return 0;
+            activeJobs.get(job).costToDo = 0;
         }
         targets.add(getStorageForJob(job));
         Location cur = targets.poll();
@@ -160,7 +198,7 @@ public class DeliveryCar extends Agent {
             cur = targets.poll();
         }
 
-        return total_distance;
+        activeJobs.get(job).costToDo = total_distance;
     }
 
     private void calculateBids(LinkedList<String> jobs) {
@@ -171,7 +209,8 @@ public class DeliveryCar extends Agent {
             String bestJob = "";
             for (String job: jobs) {
                 if (!sortedJobs.contains(job)) {
-                    float profit = activeJobs.get(job).profit / calculateCost(job, start);
+                    calculateCost(job, current);
+                    float profit = activeJobs.get(job).profit / activeJobs.get(job).costToDo;
                     if (profit > maxProfit) {
                         maxProfit = profit;
                         bestJob = job;
@@ -183,7 +222,7 @@ public class DeliveryCar extends Agent {
         }
         start = current;
         for (String job: sortedJobs) {
-            activeJobs.get(job).costToDo = calculateCost(job, start);
+            calculateCost(job, start);
             start = getStorageForJob(job);
         }
     }
@@ -278,7 +317,7 @@ public class DeliveryCar extends Agent {
                     load.put(String.valueOf(p.getParameters().get(0)), Float.parseFloat(String.valueOf(p.getParameters().get(1))));
                     break;
                 case "lastActionResult":
-                    say("Last action was: " + p.getParameters());
+                    //say("Last action was: " + p.getParameters());
                     break;
             }
 
