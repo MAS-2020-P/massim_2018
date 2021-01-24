@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 public class EvilCorpHQ extends Agent {
 
     static private class eCNPInstance {
+
         static private class Bid implements Comparable<Bid>{
             public Bid(String agent, float bid) {
                 this.agent = agent;
@@ -34,14 +35,18 @@ public class EvilCorpHQ extends Agent {
             }
         }
 
-        public eCNPInstance(String jobId, EvilCorpHQ initiator) {
+        public eCNPInstance(String jobId, EvilCorpHQ initiator, Protocol protocol) {
             this.jobId = jobId;
             this.initiator = initiator;
             bids = new LinkedList<>();
+            bids.add(new LinkedList<>());
+            this.protocol = protocol;
         }
+        Protocol protocol;
         String jobId;
         EvilCorpHQ initiator;
         int start = -1;
+        int round = 0;
         // stores a list of bids per round
         LinkedList<LinkedList<Bid>> bids;
 
@@ -52,20 +57,19 @@ public class EvilCorpHQ extends Agent {
         }
 
         public void handleBidMessage(String participantName, float bid, int currStep) {
-            addBiddingRoundIfNeeded(currStep);
-            bids.get(getBiddingRound(currStep)).add(new Bid(participantName, bid));
+            bids.get(getBiddingRound()).add(new Bid(participantName, bid));
         }
 
         public void handleDefinitiveBidMessage(String participantName, float bid, int currStep) {
-            addBiddingRoundIfNeeded(currStep);
-            bids.get(getBiddingRound(currStep)).add(new Bid(participantName, bid, true));
+            bids.get(getBiddingRound()).add(new Bid(participantName, bid, true));
         }
 
-        public void handleCurrentBids(int currStep) {
+        public void handleCurrentBids() {
             // handle the bids that came in the last step
             LinkedList<Bid> currBids;
+            bids.add(new LinkedList<>());
             try {
-                currBids = bids.get(getBiddingRound(currStep - 1));
+                currBids = bids.get(getBiddingRound());
             } catch (IndexOutOfBoundsException e) {
                 // no bid came in for this job, abort
                 initiator.say("No bid received for " + jobId + " ... removing contract.");
@@ -98,6 +102,8 @@ public class EvilCorpHQ extends Agent {
             else {
                 acceptAndRejectBids(currBids);
             }
+
+            round++;
         }
 
         private HashSet<String> getAllBidders() {
@@ -147,13 +153,13 @@ public class EvilCorpHQ extends Agent {
             initiator.sendMessage(message, participantName, initiator.getName());
         }
 
-        private void addBiddingRoundIfNeeded(int currStep) {
-            if (bids.size() < getBiddingRound(currStep) + 1)
+        private void addBiddingRoundIfNeeded() {
+            if (bids.size() < round + 1)
                 bids.add(new LinkedList<>());
         }
 
-        private int getBiddingRound(int currStep) {
-            return currStep - start;
+        private int getBiddingRound() {
+            return round;
         }
     }
 
@@ -306,15 +312,12 @@ public class EvilCorpHQ extends Agent {
         extractInfoFromStepPercept(percepts);
 
         // try commanding trucks to pick up some resources
-        if (leader.equals(getName())) {
+        if (protocol == Protocol.delegation && leader.equals(getName()))
             tryOrderTrucksToResourceNodes();
-        }
-
-        // process (e)CNP instances
-        processCNPInstances();
 
         // try starting job announcements
-        startJobAnnouncement();
+        if (protocol == Protocol.CNP || protocol == Protocol.eCNP)
+            startJobAnnouncement();
 
         Action action = getAction();
         // say(action.toProlog());
@@ -327,20 +330,6 @@ public class EvilCorpHQ extends Agent {
             broadcast(new Percept("leader"), getName());
             this.leader = getName();
         }
-    }
-
-    private void processCNPInstances() {
-        // process eCNP instances
-        for (eCNPInstance inst : eCNPInstances.values())
-            inst.handleCurrentBids(step);
-
-        // remove finished instances
-        for (String jobId : finishedECNPs) {
-            eCNPInstances.remove(jobId);
-        }
-        finishedECNPs.clear();
-
-        // TODO: handle CNP instances
     }
 
     @Override
@@ -530,13 +519,41 @@ public class EvilCorpHQ extends Agent {
         List<Job> jobsWOContract = allJobs.values().stream()
                 .filter(job -> !job.contracted).collect(Collectors.toList());
 
-        // for each job start a new eCNP instance
-        for (Job job : jobsWOContract) {
-            eCNPInstance inst = new eCNPInstance(job.id, this);
-            eCNPInstances.put(job.id, inst);
-            inst.announceJob(step);
-            job.contracted = true;
+        // for each job start a new (e)CNP instance
+        if (protocol == Protocol.eCNP) {
+            List<eCNPInstance> newJobs = new LinkedList<>();
+            for (Job job : jobsWOContract) {
+                eCNPInstance inst = new eCNPInstance(job.id, this, protocol);
+                eCNPInstances.put(job.id, inst);
+                newJobs.add(inst);
+                job.contracted = true;
+            }
+            announceECNPJobs(newJobs, step);
+            while (eCNPInstances.size() > 0) {
+                for (eCNPInstance inst : newJobs) {
+                    inst.handleCurrentBids();
+                }
+                removeFinishedCNPInstances();
+            }
         }
+        else if (protocol == Protocol.CNP) {
+            for (Job job : jobsWOContract) {
+                eCNPInstance inst = new eCNPInstance(job.id, this, protocol);
+                eCNPInstances.put(job.id, inst);
+                inst.announceJob(step);
+                job.contracted = true;
+                inst.handleCurrentBids();
+            }
+            removeFinishedCNPInstances();
+        }
+    }
+
+    private void removeFinishedCNPInstances() {
+        // remove finished instances
+        for (String jobId : finishedECNPs) {
+            eCNPInstances.remove(jobId);
+        }
+        finishedECNPs.clear();
     }
 
     public void closeECNPInstance(String jobId, boolean success) {
@@ -546,4 +563,16 @@ public class EvilCorpHQ extends Agent {
         }
         finishedECNPs.add(jobId);
     }
+
+    public void announceECNPJobs(List<eCNPInstance> toAnnounce, int step) {
+        ParameterList jobs = new ParameterList();
+        for (eCNPInstance inst : toAnnounce) {
+            jobs.add(new Identifier(inst.jobId));
+            inst.start = step;
+            allJobs.get(inst.jobId).contracted = true;
+        }
+        Percept message = new Percept("announceJobs", jobs);
+        broadcast(message, getName());
+    }
 }
+
