@@ -34,7 +34,7 @@ public class DeliveryCar extends Agent {
     private String currentJob = "";
     private Map<String,Job> activeJobs = new HashMap<>();
     private Map<String, Percept> storages = new HashMap<>();
-    private Map<String, List<Location>> nodes = new HashMap<>();
+    private Map<String, Map<String, Location>> nodes = new HashMap<>();
     private Map<String, Float> load = new HashMap<>();
     private Boolean available = true;
 
@@ -55,43 +55,7 @@ public class DeliveryCar extends Agent {
     public Action step() {
 
 
-        for (Percept p : getPercepts()) {
-            //System.out.println(p.getName());
-            switch (p.getName()) {
-                case "job":
-                    //System.out.println(p);
-                    Job newJob = new Job();
-                    newJob.target = String.valueOf(p.getParameters().get(1));
-                    newJob.profit = Float.parseFloat(String.valueOf(p.getParameters().get(2)));
-                    ParameterList requiredItems = listParam(p, 5);
-                    for (Parameter i : requiredItems) {
-                        String itemName = stringParam(((Function) i).getParameters(), 0);
-                        int amount = intParam(((Function) i).getParameters(), 1);
-                        newJob.items.putIfAbsent(itemName, amount);
-                    }
-                    activeJobs.putIfAbsent(String.valueOf(p.getParameters().get(0)), newJob);
-                    break;
-                case "storage":
-                    storages.putIfAbsent(String.valueOf(p.getParameters().get(0)), p);
-                    break;
-                case "centerLon":
-                    center.lon = String.valueOf(p.getParameters().get(0));
-                    break;
-                case "centerLat":
-                    center.lat = String.valueOf(p.getParameters().get(0));
-                    break;
-                case "lon":
-                    current.lon = String.valueOf(p.getParameters().get(0));
-                    break;
-                case "lat":
-                    current.lat = String.valueOf(p.getParameters().get(0));
-                    break;
-                case "item":
-                    load.put(String.valueOf(p.getParameters().get(1)), Float.parseFloat(String.valueOf(p.getParameters().get(0))));
-                    break;
-            }
-
-        }
+        handlePercepts();
 
         if (currentJob.equals("")) {
             if (getJob()) {
@@ -102,9 +66,19 @@ public class DeliveryCar extends Agent {
             reset();
         } else if (actionQueue.isEmpty() && atTarget()){
             if (targetQueue.size() == 0) {
+                say("Active jobs: " + activeJobs.keySet());
+                say("Job: " + activeJobs.get(currentJob).toString());
+                say("Delivered JOB! " + currentJob);
+                say("Identifier: " + new Identifier(currentJob));
                 actionQueue.add(new Action("deliver_job", new Identifier(currentJob)));
+                reset();
             } else {
+                if (!load.containsKey(itemQueue.peek())) {
+                    load.put(itemQueue.peek(), (float) 0);
+                }
+                say("item queue: " + itemQueue + " target queue: " + targetQueue);
                 if (activeJobs.get(currentJob).items.get(itemQueue.peek()) > load.get(itemQueue.peek())) {
+                    say("Gathering");
                     actionQueue.add(new Action("gather"));
                 } else {
                     if (targetQueue.size() > 1){
@@ -130,21 +104,22 @@ public class DeliveryCar extends Agent {
                 }
             case "announceJob":
                 if(available){
-                    String newJob = String.valueOf(message.getParameters().get(2));
+
+                    String newJob = String.valueOf(message.getParameters().get(0));
                     float cost = calculateCost(newJob, current);
-                    Percept reply = new Percept("bid", new Identifier(getName()), new Identifier(String.valueOf(cost)));
+                    Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
                 }
             case "accept":
                 if(available){
-                    String newJob = String.valueOf(message.getParameters().get(2));
+                    String newJob = String.valueOf(message.getParameters().get(0));
                     float cost = calculateCost(newJob, current);
-                    Percept reply = new Percept("definitiveBid", new Identifier(getName()), new Identifier(String.valueOf(cost)));
+                    Percept reply = new Percept("definitiveBid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
                 }
             case "definitiveAccept":
                 if (available){
-                    jobQueue.add(String.valueOf(message.getParameters().get(2)));
+                    jobQueue.add(String.valueOf(message.getParameters().get(0)));
                     break;
                 }
         }
@@ -153,7 +128,7 @@ public class DeliveryCar extends Agent {
     private Location findNearest(String item, Location start) {
         Location nearest = new Location();
         float minDif = Float.MAX_VALUE;
-        for (Location l: nodes.get(item)) {
+        for (Location l: nodes.get(item).values()) {
             float newLat = Float.parseFloat(l.lat);
             float newLon = Float.parseFloat(l.lon);
             float newDif = Math.abs(Float.parseFloat(start.lat) - newLat) + Math.abs(Float.parseFloat(start.lon) - newLon);
@@ -169,8 +144,11 @@ public class DeliveryCar extends Agent {
         LinkedList<Location> targets = new LinkedList<>();
         targets.add(start);
         float total_distance = 0;
+        if(!activeJobs.containsKey(job)) {
+            handlePercepts();
+        }
         for (String item: activeJobs.get(job).items.keySet()) {
-            targetQueue.add(findNearest(item, targets.getLast()));
+            targets.add(findNearest(item, targets.getLast()));
         }
         if (targets.size() == 0){
             return 0;
@@ -181,7 +159,6 @@ public class DeliveryCar extends Agent {
             total_distance += calculateDistance(cur, targets.peek());
             cur = targets.poll();
         }
-
 
         return total_distance;
     }
@@ -233,6 +210,8 @@ public class DeliveryCar extends Agent {
         target = new Location();
         currentJob = "";
         actionQueue.clear();
+        itemQueue.clear();
+        targetQueue.clear();
         Percept message = new Percept("TruckReady", new Identifier(getName()));
         broadcast(message, getName());
     }
@@ -248,6 +227,63 @@ public class DeliveryCar extends Agent {
             return true;
         }
         return false;
+    }
+
+    private void handlePercepts() {
+        for (Percept p : getPercepts()) {
+            //System.out.println(p.getName());
+            switch (p.getName()) {
+                case "job":
+                    Job newJob = new Job();
+                    newJob.target = String.valueOf(p.getParameters().get(1));
+                    newJob.profit = Float.parseFloat(String.valueOf(p.getParameters().get(2)));
+                    ParameterList requiredItems = listParam(p, 5);
+                    for (Parameter i : requiredItems) {
+                        String itemName = stringParam(((Function) i).getParameters(), 0);
+                        int amount = intParam(((Function) i).getParameters(), 1);
+                        newJob.items.putIfAbsent(itemName, amount);
+                    }
+                    activeJobs.putIfAbsent(String.valueOf(p.getParameters().get(0)), newJob);
+                    break;
+                case "resourceNode":
+                    Location node = new Location();
+                    String item = String.valueOf(p.getParameters().get(3));
+                    node.id = String.valueOf(p.getParameters().get(0));
+                    node.lat = String.valueOf(p.getParameters().get(1));
+                    node.lon = String.valueOf(p.getParameters().get(2));
+                    if (nodes.containsKey(item)) {
+                        nodes.get(item).putIfAbsent(node.id, node);
+                    } else {
+                        Map<String, Location> map = new HashMap<>();
+                        map.put(node.id, node);
+                        nodes.put(item, map);
+                    }
+                    break;
+
+                case "storage":
+                    storages.putIfAbsent(String.valueOf(p.getParameters().get(0)), p);
+                    break;
+                case "centerLon":
+                    center.lon = String.valueOf(p.getParameters().get(0));
+                    break;
+                case "centerLat":
+                    center.lat = String.valueOf(p.getParameters().get(0));
+                    break;
+                case "lon":
+                    current.lon = String.valueOf(p.getParameters().get(0));
+                    break;
+                case "lat":
+                    current.lat = String.valueOf(p.getParameters().get(0));
+                    break;
+                case "hasItem":
+                    load.put(String.valueOf(p.getParameters().get(0)), Float.parseFloat(String.valueOf(p.getParameters().get(1))));
+                    break;
+                case "lastActionResult":
+                    say("Last action was: " + p.getParameters());
+                    break;
+            }
+
+        }
     }
     /**
      * Tries to extract a parameter from a list of parameters.
