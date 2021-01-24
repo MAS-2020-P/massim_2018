@@ -209,7 +209,6 @@ public class DeliveryCar extends Agent {
         available = true;
         target = new Location();
         currentJob = "";
-        actionQueue.clear();
         itemQueue.clear();
         targetQueue.clear();
         Percept message = new Percept("TruckReady", new Identifier(getName()));
