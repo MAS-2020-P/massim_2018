@@ -150,16 +150,19 @@ public class DeliveryCar extends Agent {
                 } else {
                     activeBids.put(String.valueOf(message.getParameters().get(0)), true);
                 }
+                break;
             case "definitiveReject":
                 activeBids.remove(String.valueOf(message.getParameters().get(0)));
-                LinkedList<String> jobs = new LinkedList<>(activeJobs.keySet());
+                LinkedList<String> jobs = new LinkedList<>(activeBids.keySet());
                 calculateBids(jobs);
                 for (String j : activeBids.keySet()) {
                     if(activeBids.get(j)) {
+                        say("Bidding on job " + j + " with bid " + activeJobs.get(j).costToDo);
                         Percept reply = new Percept("bid", new Identifier(j), new Numeral(activeJobs.get(j).costToDo));
                         broadcast(reply, getName());
                     }
                 }
+                break;
 
         }
     }
