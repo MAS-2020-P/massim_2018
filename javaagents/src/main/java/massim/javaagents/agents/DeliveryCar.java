@@ -153,8 +153,10 @@ public class DeliveryCar extends Agent {
                 }
                 break;
             case "definitiveReject":
+                say("Removing job " + String.valueOf(message.getParameters().get(0)));
                 activeBids.remove(String.valueOf(message.getParameters().get(0)));
                 LinkedList<String> jobs = new LinkedList<>(activeBids.keySet());
+                say("Remaining jobs to bid on: " + jobs);
                 calculateBids(jobs);
                 for (String j : activeBids.keySet()) {
                     if(activeBids.get(j)) {
