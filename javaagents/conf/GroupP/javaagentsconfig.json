@@ -1,10 +1,10 @@
 {
   "agents" : {
     "agentA1" : {"entity" : "connectionA1", "team" : "A", "class" : "EvilCorpHQ"},
-    "agentA2" : {"entity" : "connectionA2", "team" : "A", "class" : "PickupTruck"},
-    "agentA3" : {"entity" : "connectionA3", "team" : "A", "class" : "PickupTruck"},
-    "agentA4" : {"entity" : "connectionA4", "team" : "A", "class" : "PickupTruck"},
-    "agentA5" : {"entity" : "connectionA5", "team" : "A", "class" : "PickupTruck"},
-    "agentA6" : {"entity" : "connectionA6", "team" : "A", "class" : "PickupTruck"}
+    "agentA2" : {"entity" : "connectionA2", "team" : "A", "class" : "DeliveryCar"},
+    "agentA3" : {"entity" : "connectionA3", "team" : "A", "class" : "DeliveryCar"},
+    "agentA4" : {"entity" : "connectionA4", "team" : "A", "class" : "DeliveryCar"},
+    "agentA5" : {"entity" : "connectionA5", "team" : "A", "class" : "DeliveryCar"},
+    "agentA6" : {"entity" : "connectionA6", "team" : "A", "class" : "DeliveryCar"}
   }
 }

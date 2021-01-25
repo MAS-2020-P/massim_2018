@@ -47,21 +47,21 @@
     "maxBattery" : 80000,
     "baseSkill" : 8,
     "maxSkill" : 12,
-    "baseVision" : 400,
-    "maxVision" : 800,
+    "baseVision" : 40000,
+    "maxVision" : 80000,
     "roads" : ["road"]
   },
   "truck" : {
     "baseSpeed" : 2,
     "maxSpeed" : 3,
-    "baseLoad" : 100,
-    "maxLoad" : 300,
+    "baseLoad" : 10000,
+    "maxLoad" : 30000,
     "baseBattery" : 50000,
     "maxBattery" : 100000,
     "baseSkill" : 10,
     "maxSkill" : 15,
-    "baseVision" : 300,
-    "maxVision" : 700,
+    "baseVision" : 30000,
+    "maxVision" : 70000,
     "roads" : ["road"]
   }
 }
