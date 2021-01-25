@@ -153,7 +153,7 @@ public class DeliveryCar extends Agent {
                 break;
             case "definitiveReject":
                 activeBids.remove(String.valueOf(message.getParameters().get(0)));
-                LinkedList<String> jobs = new LinkedList<>(activeJobs.keySet());
+                LinkedList<String> jobs = new LinkedList<>(activeBids.keySet());
                 calculateBids(jobs);
                 for (String j : activeBids.keySet()) {
                     if(activeBids.get(j)) {
