@@ -139,6 +139,7 @@ public class DeliveryCar extends Agent {
                 break;
             case "definitiveAccept":
                 if (available){
+                    activeBids.remove(String.valueOf(message.getParameters().get(0)));
                     jobQueue.add(String.valueOf(message.getParameters().get(0)));
                 }
                 break;

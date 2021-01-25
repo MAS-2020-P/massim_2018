@@ -371,6 +371,7 @@ public class ActionExecutor {
                     break;
                 }
                 Job job = world.getJob(params.get(0));
+                System.out.println("Got job request" + params.get(0));
                 if(job == null){
                     entity.setLastActionResult(FAILED_UNKNOWN_JOB);
                     break;
