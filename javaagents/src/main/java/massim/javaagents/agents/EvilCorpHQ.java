@@ -58,7 +58,9 @@ public class EvilCorpHQ extends Agent {
 
         public void handleBidMessage(String participantName, float bid, int currStep) {
             bids.get(round).add(new Bid(participantName, bid));
-            initiator.say("bid from " + participantName + " (" + bid + ")");
+            initiator.say("bid from " + participantName + " for " + jobId + " (" + bid + ") - prev bid: " +
+                    (round > 0 ? bids.get(round - 1).stream()
+                            .filter(b -> b.agent.equals(participantName)).findAny().get().bid : "no bid"));
 
         }
 
@@ -94,8 +96,8 @@ public class EvilCorpHQ extends Agent {
                     // collect all bidders (except finalist) of this bidding and send def reject
                     HashSet<String> allBidders = getAllBidders();
                     allBidders.remove(definiteBid.agent);
-                    allBidders.forEach(this::sendDefinitiveReject);
                     initiator.say("Sending defReject to " + allBidders);
+                    allBidders.forEach(this::sendDefinitiveReject);
                     initiator.closeECNPInstance(jobId, true);
                 }
                 // no, bid is no longer the best, continue with normal procedure (def bidder will get a reject)

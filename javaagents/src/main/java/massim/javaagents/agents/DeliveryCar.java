@@ -101,8 +101,8 @@ public class DeliveryCar extends Agent {
                 // say("Got command to pick up");
                 if(available){
                     jobQueue.add(String.valueOf(message.getParameters().get(2)));
-                    break;
                 }
+                break;
             case "announceJob":
                 if(available){
 
@@ -111,8 +111,8 @@ public class DeliveryCar extends Agent {
                     float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
-                    break;
                 }
+                break;
             case "announceJobs":
                 if(available){
                     ParameterList jobParams = listParam(message, 0);
@@ -127,21 +127,21 @@ public class DeliveryCar extends Agent {
                         Percept reply = new Percept("bid", new Identifier(j), new Numeral(activeJobs.get(j).costToDo));
                         broadcast(reply, getName());
                     }
-                    break;
                 }
+                break;
             case "accept":
                 if(available){
                     String newJob = String.valueOf(message.getParameters().get(0));
                     float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("definitiveBid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
-                    break;
                 }
+                break;
             case "definitiveAccept":
                 if (available){
                     jobQueue.add(String.valueOf(message.getParameters().get(0)));
-                    break;
                 }
+                break;
             case "reject":
                 String job = String.valueOf(message.getParameters().get(0));
                 if (activeJobs.get(job).costToDo < Float.parseFloat(String.valueOf(message.getParameters().get(1)))) {
@@ -150,6 +150,7 @@ public class DeliveryCar extends Agent {
                 } else {
                     activeBids.put(String.valueOf(message.getParameters().get(0)), true);
                 }
+                break;
             case "definitiveReject":
                 activeBids.remove(String.valueOf(message.getParameters().get(0)));
                 LinkedList<String> jobs = new LinkedList<>(activeJobs.keySet());
@@ -160,7 +161,7 @@ public class DeliveryCar extends Agent {
                         broadcast(reply, getName());
                     }
                 }
-
+                break;
         }
     }
 
