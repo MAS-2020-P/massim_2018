@@ -107,7 +107,7 @@ public class DeliveryCar extends Agent {
                 if(available){
 
                     String newJob = String.valueOf(message.getParameters().get(0));
-                    calculateCost(newJob, current);
+                    activeJobs.get(newJob).costToDo = calculateCost(newJob, current);
                     float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
                     broadcast(reply, getName());
@@ -179,7 +179,7 @@ public class DeliveryCar extends Agent {
         return nearest;
     }
 
-    private void calculateCost(String job, Location start) {
+    private float calculateCost(String job, Location start) {
         LinkedList<Location> targets = new LinkedList<>();
         targets.add(start);
         float total_distance = 0;
@@ -190,7 +190,7 @@ public class DeliveryCar extends Agent {
             targets.add(findNearest(item, targets.getLast()));
         }
         if (targets.size() == 0){
-            activeJobs.get(job).costToDo = 0;
+            return 0;
         }
         targets.add(getStorageForJob(job));
         Location cur = targets.poll();
@@ -199,7 +199,7 @@ public class DeliveryCar extends Agent {
             cur = targets.poll();
         }
 
-        activeJobs.get(job).costToDo = total_distance;
+        return total_distance;
     }
 
     private void calculateBids(LinkedList<String> jobs) {
@@ -209,9 +209,11 @@ public class DeliveryCar extends Agent {
             float maxProfit = 0;
             String bestJob = "";
             for (String job: jobs) {
+                if(!activeJobs.containsKey(job)) {
+                    handlePercepts();
+                }
                 if (!sortedJobs.contains(job)) {
-                    calculateCost(job, current);
-                    float profit = activeJobs.get(job).profit / activeJobs.get(job).costToDo;
+                    float profit = activeJobs.get(job).profit / calculateCost(job, start);
                     if (profit > maxProfit) {
                         maxProfit = profit;
                         bestJob = job;
@@ -221,9 +223,25 @@ public class DeliveryCar extends Agent {
             sortedJobs.add(bestJob);
             start = getStorageForJob(bestJob);
         }
+        float totalCost = 0;
+        if (!targetQueue.isEmpty()) {
+            start = current;
+            for (Location t: targetQueue) {
+                totalCost += calculateDistance(start, t);
+            }
+        }
+        if (!jobQueue.isEmpty()) {
+            start = current;
+            for (String j: jobQueue) {
+                totalCost += calculateCost(j, start);
+                activeJobs.get(j).costToDo = totalCost;
+                start = getStorageForJob(j);
+            }
+        }
         start = current;
         for (String job: sortedJobs) {
-            calculateCost(job, start);
+            totalCost += calculateCost(job, start);
+            activeJobs.get(job).costToDo = totalCost;
             start = getStorageForJob(job);
         }
     }
