@@ -366,16 +366,21 @@ public class EvilCorpHQ extends Agent {
             case "resourceNodeFound":
                 addResourceNodeUnique(message);
                 break;
-            case "bid":
+            case "bid": {
                 String jobId = String.valueOf(message.getParameters().get(0));
                 float bidAmount = ((Numeral) message.getParameters().get(1)).getValue().floatValue();
-                eCNPInstances.get(jobId).handleBidMessage(sender, bidAmount, step);
-                break;
-            case "definitiveBid":
-                jobId = String.valueOf(message.getParameters().get(0));
-                bidAmount = ((Numeral) message.getParameters().get(1)).getValue().floatValue();
+                try {
+                    eCNPInstances.get(jobId).handleBidMessage(sender, bidAmount, step);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    say("ERROR: " + sender + " bid on already contracted or non-existing " + jobId);
+                }
+                break;}
+            case "definitiveBid": {
+                String jobId = String.valueOf(message.getParameters().get(0));
+                float bidAmount = ((Numeral) message.getParameters().get(1)).getValue().floatValue();
                 eCNPInstances.get(jobId).handleDefinitiveBidMessage(sender, bidAmount, step);
-                break;
+                break;}
             default:
                 say("I cannot handle a message of type " + message.getName());
         }
@@ -588,6 +593,7 @@ public class EvilCorpHQ extends Agent {
     private void removeFinishedCNPInstances() {
         // remove finished instances
         for (String jobId : finishedECNPs) {
+            say("Removing instance for " + jobId);
             eCNPInstances.remove(jobId);
         }
         finishedECNPs.clear();
