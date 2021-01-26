@@ -68,7 +68,6 @@ public class DeliveryCar extends Agent {
         } else if (actionQueue.isEmpty() && atTarget()){
             if (targetQueue.size() == 0) {
                 say("Active jobs: " + activeJobs.keySet());
-                say("Job: " + activeJobs.get(currentJob).toString());
                 say("Delivered JOB! " + currentJob);
                 say("Identifier: " + new Identifier(currentJob));
                 actionQueue.add(new Action("deliver_job", new Identifier(currentJob)));
@@ -92,6 +91,7 @@ public class DeliveryCar extends Agent {
         }
 
         activeJobs.clear();
+        load.clear();
         return actionQueue.peek() != null? actionQueue.poll() : new Action("continue");
     }
     @Override
@@ -105,8 +105,11 @@ public class DeliveryCar extends Agent {
                 break;
             case "announceJob":
                 if(available){
-
                     String newJob = String.valueOf(message.getParameters().get(0));
+                    if(!activeJobs.containsKey(newJob)) {
+                        handlePercepts();
+                    }
+                    say("Got auction for new job " + newJob);
                     activeJobs.get(newJob).costToDo = calculateCost(newJob, current);
                     float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
