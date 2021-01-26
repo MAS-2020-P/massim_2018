@@ -66,7 +66,9 @@ public class EvilCorpHQ extends Agent {
 
         public void handleDefinitiveBidMessage(String participantName, float bid, int currStep) {
             bids.get(getBiddingRound()).add(new Bid(participantName, bid, true));
-            initiator.say("defBid from " + participantName + " (" + bid + ")");
+            initiator.say("defBid from " + participantName + " for " + jobId + " (" + bid + ") - prev bid: " +
+                    (round > 0 ? bids.get(round - 1).stream()
+                            .filter(b -> b.agent.equals(participantName)).findAny().get().bid : "no bid"));
         }
 
         public void handleCurrentBids() {
@@ -80,6 +82,16 @@ public class EvilCorpHQ extends Agent {
                 initiator.closeECNPInstance(jobId, false);
                 return;
             }
+            if (bids.size() > 1) {
+                // fill missing bids from this round with bids from last round (they persist)
+                HashSet<String> currBidders = new HashSet<>();
+                for (Bid b : currBids) currBidders.add(b.agent);
+                for (Bid b : bids.get(round - 1)) {
+                    if (!currBidders.contains(b.agent)) currBids.add(b);
+                }
+            }
+            printBiddingRounds();
+
             round++;
             bids.add(new LinkedList<>());
 
@@ -171,6 +183,24 @@ public class EvilCorpHQ extends Agent {
 
         private int getBiddingRound() {
             return round;
+        }
+
+        public void printBiddingRounds() {
+            System.out.println("= current bids for " + jobId + " = (NaN is no bid)");
+
+            System.out.format("%6s%7s%7s%7s%7s%7s\n", "round", "A2", "A3", "A4", "A5", "A6");
+            for (int i = 0; i < bids.size(); i++) {
+                LinkedList<Bid> rBids = bids.get(i);
+                HashMap<String, Bid> curBids = new HashMap<>();
+                for (Bid b : rBids)
+                    curBids.put(b.agent, b);
+                System.out.format("%6s%7.3f%7.3f%7.3f%7.3f%7.3f\n", Integer.toString(i),
+                        curBids.containsKey("agentA2") ? curBids.get("agentA2").bid : Float.NaN,
+                        curBids.containsKey("agentA3") ? curBids.get("agentA3").bid : Float.NaN,
+                        curBids.containsKey("agentA4") ? curBids.get("agentA4").bid : Float.NaN,
+                        curBids.containsKey("agentA5") ? curBids.get("agentA5").bid : Float.NaN,
+                        curBids.containsKey("agentA6") ? curBids.get("agentA6").bid : Float.NaN);
+            }
         }
 
         @Override
