@@ -94,10 +94,11 @@ public class EvilCorpHQ extends Agent {
             round++;
             bids.add(new LinkedList<>());
 
-            Bid definiteBid = getDefinitiveBid(currBids);
             if (currBids.isEmpty()) initiator.say("eCNP Error: no bids given for " + jobId);
 
             currBids.sort((o1, o2) -> Float.compare(o1.bid, o2.bid));
+            Bid definiteBid = getDefinitiveBid(currBids);
+
 
             // (STATE 5 in slides) // check if definitive bid is still highest
             if (definiteBid != null) {
@@ -146,9 +147,14 @@ public class EvilCorpHQ extends Agent {
         }
 
         private Bid getDefinitiveBid(LinkedList<Bid> currBids) {
-            for (Bid bid : currBids) {
-                if (bid.definitive)
-                    return bid;
+            if (protocol == Protocol.eCNP) {
+                for (Bid bid : currBids) {
+                    if (bid.definitive)
+                        return bid;
+                }
+            }
+            else if (protocol == Protocol.CNP) {
+                return currBids.getFirst();
             }
             return null;
         }
