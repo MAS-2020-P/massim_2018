@@ -1,5 +1,5 @@
 {
-  "jobProbability": 0.2,
+  "jobProbability": 10,
   "auctionProbability": 0.1,
   "missionProbability": 0.01,
   "jobDurationMin": 8000,

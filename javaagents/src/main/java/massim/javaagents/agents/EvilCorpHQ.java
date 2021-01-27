@@ -587,7 +587,7 @@ public class EvilCorpHQ extends Agent {
                 .filter(job -> !job.contracted).collect(Collectors.toList());
 
 //        if (jobsWOContract.size() < 100) return;  // wait, till 5 jobs are buffered
-        if (alreadyAnnouncedJobs) return;
+        if (!alreadyAnnouncedJobs) return;
         alreadyAnnouncedJobs = true;
 
         // for each job start a new (e)CNP instance

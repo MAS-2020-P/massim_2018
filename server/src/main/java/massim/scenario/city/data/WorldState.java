@@ -53,7 +53,7 @@ public class WorldState {
     private Map<Location, Facility> facilityByLocation = new HashMap<>();
     private Map<String, TeamState> teams = new HashMap<>();
     private Map<String, Job> jobs = new HashMap<>();
-    private List<Job> newJobs = new Vector<>();
+    public List<Job> newJobs = new Vector<>();
 
     private Generator gen;
 

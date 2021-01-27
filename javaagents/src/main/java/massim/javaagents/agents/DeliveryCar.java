@@ -97,6 +97,10 @@ public class DeliveryCar extends Agent {
     @Override
     public void handleMessage(Percept message, String sender) {
         switch (message.getName()){
+            case "ping":
+                Percept ping_reply = new Percept("TruckReady", new Identifier(getName()));
+                broadcast(ping_reply, getName());
+                break;
             case "gatherFromNode":
                 // say("Got command to pick up");
                 if(available){
@@ -110,6 +114,25 @@ public class DeliveryCar extends Agent {
                         handlePercepts();
                     }
                     say("Got auction for new job " + newJob);
+                    float totalCost = 0;
+                    Location start = current;
+                    if (!targetQueue.isEmpty()) {
+                        for (Location t: targetQueue) {
+                            totalCost += calculateDistance(start, t);
+                        }
+                    }
+                    if (!jobQueue.isEmpty()) {
+                        if (!currentJob.equals("")) {
+                            start = getStorageForJob(currentJob);
+                        } else {
+                            start = current;
+                        }
+                        for (String j: jobQueue) {
+                            totalCost += calculateCost(j, start);
+                            activeJobs.get(j).costToDo = totalCost;
+                            start = getStorageForJob(j);
+                        }
+                    }
                     activeJobs.get(newJob).costToDo = calculateCost(newJob, current);
                     float cost = activeJobs.get(newJob).costToDo;
                     Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
@@ -238,14 +261,17 @@ public class DeliveryCar extends Agent {
             }
         }
         if (!jobQueue.isEmpty()) {
-            start = current;
+            if (!currentJob.equals("")) {
+                start = getStorageForJob(currentJob);
+            } else {
+                start = current;
+            }
             for (String j: jobQueue) {
                 totalCost += calculateCost(j, start);
                 activeJobs.get(j).costToDo = totalCost;
                 start = getStorageForJob(j);
             }
         }
-        start = current;
         for (String job: sortedJobs) {
             totalCost += calculateCost(job, start);
             activeJobs.get(job).costToDo = totalCost;

@@ -516,8 +516,8 @@ public class Generator {
         Set<Job> jobs = new HashSet<>();
 
         if(RNG.nextDouble() <= jobProbability) jobs.addAll(generateJob(world, stepNo, "regular"));
-        if(RNG.nextDouble() <= auctionProbability) jobs.addAll(generateJob(world, stepNo, "auction"));
-        if(RNG.nextDouble() <= missionProbability) jobs.addAll(generateJob(world, stepNo, "mission"));
+        //if(RNG.nextDouble() <= auctionProbability) jobs.addAll(generateJob(world, stepNo, "auction"));
+        //if(RNG.nextDouble() <= missionProbability) jobs.addAll(generateJob(world, stepNo, "mission"));
 
         // Log jobs
         for(Job job: jobs){
@@ -533,7 +533,7 @@ public class Generator {
                     job.getClass().getSimpleName(), value, job.getReward(), job.getBeginStep(), job.getEndStep(),
                     job.getStorage().getName(), String.join(", ", reqItems)));
         }
-
+        System.out.println(jobs);
         return jobs;
     }
 
