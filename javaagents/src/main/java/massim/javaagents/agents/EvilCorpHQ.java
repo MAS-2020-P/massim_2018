@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class EvilCorpHQ extends Agent {
 
-    private boolean alreadyAnnouncedJobs = false;
+    private boolean jobAnnounceComplete = false;
 
     static private class eCNPInstance {
 
@@ -364,6 +364,8 @@ public class EvilCorpHQ extends Agent {
         // extract values from step percept (e.g. lat and lon of agent, resource nodes)
         extractInfoFromStepPercept(percepts);
 
+        say("Jobs : " + allJobs.toString());
+
         // try starting job announcements
         startJobAnnouncement();
 
@@ -587,8 +589,9 @@ public class EvilCorpHQ extends Agent {
                 .filter(job -> !job.contracted).collect(Collectors.toList());
 
 //        if (jobsWOContract.size() < 100) return;  // wait, till 5 jobs are buffered
-        if (!alreadyAnnouncedJobs) return;
-        alreadyAnnouncedJobs = true;
+        if (allJobs.isEmpty()) return;
+        if (jobAnnounceComplete) return;
+        jobAnnounceComplete = true;
 
         // for each job start a new (e)CNP instance
         if (protocol == Protocol.eCNP) {
