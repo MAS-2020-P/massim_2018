@@ -133,9 +133,9 @@ public class DeliveryCar extends Agent {
                             start = getStorageForJob(j);
                         }
                     }
-                    activeJobs.get(newJob).costToDo = calculateCost(newJob, current);
-                    totalCost += activeJobs.get(newJob).costToDo;
-                    Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(totalCost));
+                    activeJobs.get(newJob).costToDo = calculateCost(newJob, current) + totalCost;
+
+                    Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(activeJobs.get(newJob).costToDo));
                     broadcast(reply, getName());
                 }
                 break;
