@@ -129,11 +129,10 @@ public class DeliveryCar extends Agent {
                         }
                         for (String j: jobQueue) {
                             totalCost += calculateCost(j, start);
-                            activeJobs.get(j).costToDo = totalCost;
                             start = getStorageForJob(j);
                         }
                     }
-                    activeJobs.get(newJob).costToDo = calculateCost(newJob, current) + totalCost;
+                    activeJobs.get(newJob).costToDo = calculateCost(newJob, start) + totalCost;
 
                     Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(activeJobs.get(newJob).costToDo));
                     broadcast(reply, getName());
