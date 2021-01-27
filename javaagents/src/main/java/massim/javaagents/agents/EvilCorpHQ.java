@@ -371,11 +371,9 @@ public class EvilCorpHQ extends Agent {
         return action;
     }
 
-    private void orderTrucksToJobs() {
-        // WUT
-        ArrayList<Job> jobs = new ArrayList<>(allJobs.values());
-        for (int i = 0; i < allJobs.size(); i++) {
-            Job job = jobs.get(i);
+    private void orderTrucksToJobs(List<Job> jobsWOContract) {
+        for (int i = 0; i < jobsWOContract.size(); i++) {
+            Job job = jobsWOContract.get(i);
             String truckId = availableTrucks.get(i % availableTrucks.size());
             sendMessage(new Percept("DoJob", new Identifier(job.id)), truckId, getName());
         }
@@ -628,7 +626,7 @@ public class EvilCorpHQ extends Agent {
             // command trucks to do jobs
             if (availableTrucks.size() == 0) {
                 pingTrucks();
-                orderTrucksToJobs();
+                orderTrucksToJobs(jobsWOContract);
             }
         }
     }
