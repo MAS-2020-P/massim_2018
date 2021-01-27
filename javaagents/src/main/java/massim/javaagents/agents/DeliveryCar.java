@@ -101,10 +101,10 @@ public class DeliveryCar extends Agent {
                 Percept ping_reply = new Percept("TruckReady", new Identifier(getName()));
                 broadcast(ping_reply, getName());
                 break;
-            case "gatherFromNode":
+            case "DoJob":
                 // say("Got command to pick up");
                 if(available){
-                    jobQueue.add(String.valueOf(message.getParameters().get(2)));
+                    jobQueue.add(String.valueOf(message.getParameters().get(0)));
                 }
                 break;
             case "announceJob":

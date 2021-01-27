@@ -3,10 +3,7 @@ package massim.javaagents.agents;
 import eis.iilang.*;
 import massim.javaagents.MailService;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EvilCorpHQ extends Agent {
@@ -311,7 +308,7 @@ public class EvilCorpHQ extends Agent {
     private double lat;
     private double lon;
     private double visionRange;
-    static public Protocol protocol = Protocol.eCNP;
+    static public Protocol protocol = Protocol.CNP;
 
 
     private List<String> availableTrucks = new LinkedList<>();
@@ -375,9 +372,9 @@ public class EvilCorpHQ extends Agent {
     }
 
     private void orderTrucksToJobs() {
-        Job[] jobs = (Job[]) allJobs.values().toArray();
+        ArrayList<Job> jobs = new ArrayList<>(allJobs.values());
         for (int i = 0; i < allJobs.size(); i++) {
-            Job job = jobs[i];
+            Job job = jobs.get(i);
             String truckId = availableTrucks.get(i % availableTrucks.size());
             sendMessage(new Percept("DoJob", new Identifier(job.id)), truckId, getName());
         }
