@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 public class EvilCorpHQ extends Agent {
 
+    private boolean alreadyAnnouncedJobs = false;
+
     static private class eCNPInstance {
 
         static private class Bid implements Comparable<Bid>{
@@ -362,17 +364,25 @@ public class EvilCorpHQ extends Agent {
         // extract values from step percept (e.g. lat and lon of agent, resource nodes)
         extractInfoFromStepPercept(percepts);
 
-        // try commanding trucks to pick up some resources
-        if (protocol == Protocol.delegation && leader.equals(getName()))
-            tryOrderTrucksToResourceNodes();
-
         // try starting job announcements
-        if (protocol == Protocol.CNP || protocol == Protocol.eCNP)
-            startJobAnnouncement();
+        startJobAnnouncement();
 
         Action action = getAction();
         // say(action.toProlog());
         return action;
+    }
+
+    private void orderTrucksToJobs() {
+        Job[] jobs = (Job[]) allJobs.values().toArray();
+        for (int i = 0; i < allJobs.size(); i++) {
+            Job job = jobs[i];
+            String truckId = availableTrucks.get(i % availableTrucks.size());
+            sendMessage(new Percept("DoJob", new Identifier(job.id)), truckId, getName());
+        }
+    }
+
+    private void pingTrucks() {
+        broadcast(new Percept("ping"), getName());
     }
 
     private void electLeader() {
@@ -576,7 +586,9 @@ public class EvilCorpHQ extends Agent {
         List<Job> jobsWOContract = allJobs.values().stream()
                 .filter(job -> !job.contracted).collect(Collectors.toList());
 
-        if (jobsWOContract.size() < 5) return;  // wait, till 5 jobs are buffered
+//        if (jobsWOContract.size() < 100) return;  // wait, till 5 jobs are buffered
+        if (alreadyAnnouncedJobs) return;
+        alreadyAnnouncedJobs = true;
 
         // for each job start a new (e)CNP instance
         if (protocol == Protocol.eCNP) {
@@ -610,6 +622,13 @@ public class EvilCorpHQ extends Agent {
                 inst.handleCurrentBids();
             }
             removeFinishedCNPInstances();
+        }
+        else if (protocol == Protocol.delegation) {
+            // command trucks to do jobs
+            if (availableTrucks.size() == 0) {
+                pingTrucks();
+                orderTrucksToJobs();
+            }
         }
     }
 
