@@ -134,8 +134,8 @@ public class DeliveryCar extends Agent {
                         }
                     }
                     activeJobs.get(newJob).costToDo = calculateCost(newJob, current);
-                    float cost = activeJobs.get(newJob).costToDo;
-                    Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(cost));
+                    totalCost += activeJobs.get(newJob).costToDo;
+                    Percept reply = new Percept("bid", new Identifier(newJob), new Numeral(totalCost));
                     broadcast(reply, getName());
                 }
                 break;
@@ -165,6 +165,7 @@ public class DeliveryCar extends Agent {
                 break;
             case "definitiveAccept":
                 if (available){
+                    say("Got definitive accept, current jobs: " + jobQueue);
                     activeBids.remove(String.valueOf(message.getParameters().get(0)));
                     jobQueue.add(String.valueOf(message.getParameters().get(0)));
                 }

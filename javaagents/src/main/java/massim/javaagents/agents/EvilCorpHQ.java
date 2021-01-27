@@ -372,6 +372,7 @@ public class EvilCorpHQ extends Agent {
     }
 
     private void orderTrucksToJobs() {
+        // WUT
         ArrayList<Job> jobs = new ArrayList<>(allJobs.values());
         for (int i = 0; i < allJobs.size(); i++) {
             Job job = jobs.get(i);
