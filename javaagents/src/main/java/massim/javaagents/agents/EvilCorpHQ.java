@@ -624,7 +624,7 @@ public class EvilCorpHQ extends Agent {
                 inst.announceJob(step);
                 job.contracted = true;
                 inst.handleCurrentBids();
-                inst.handleCurrentBids();
+//                inst.handleCurrentBids();
             }
             removeFinishedCNPInstances();
         }
