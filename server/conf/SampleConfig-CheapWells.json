@@ -11,7 +11,7 @@
     {
       "id" : "2018-SampleSimulation-DiverseJobs",
       "scenarioClass" : "city.CitySimulation",
-      "steps" : 1000,
+      "steps" : 200,
       "map" : "paris",
       "seedCapital" : 0,
       "minLon" : 2.26,
