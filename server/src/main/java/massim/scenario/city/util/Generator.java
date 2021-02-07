@@ -268,7 +268,7 @@ public class Generator {
                 RNG.shuffle(possibleParts);
                 Set<Item> parts = new HashSet<>(possibleParts.subList(0, Math.min(numberOfParts, possibleParts.size())));
                 // determine required roles
-                RNG.shuffle(roles);
+                //RNG.shuffle(roles);
                 Set<Role> requiredRoles = new HashSet<>(roles.subList(0, Math.min(2, roles.size())));
 
                 Item item = new Item("item" + itemCount++, between(volMin, volMax), parts, requiredRoles);

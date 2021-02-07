@@ -314,7 +314,7 @@ public class EvilCorpHQ extends Agent {
     private double lat;
     private double lon;
     private double visionRange;
-    static public Protocol protocol = Protocol.CNP;
+    static public Protocol protocol = Protocol.eCNP;
 
 
     private List<String> availableTrucks = new LinkedList<>();

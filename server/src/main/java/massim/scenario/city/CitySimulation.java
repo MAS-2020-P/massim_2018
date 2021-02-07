@@ -115,7 +115,7 @@ public class CitySimulation extends AbstractSimulation {
         currentStep = stepNo;
 
          // step job generator
-        while ((world.newJobs.size() + world.getJobs().size())<=25) {
+        while ((world.newJobs.size() + world.getJobs().size())<=100) {
             generator.generateJobs(stepNo, world).forEach(job -> world.addJob(job));
         }
 
@@ -349,7 +349,7 @@ public class CitySimulation extends AbstractSimulation {
     public void step(int stepNo, Map<String, Action> actions) {
         // execute all actions in random order
         List<String> agents = world.getAgents();
-        //RNG.shuffle(agents);
+        RNG.shuffle(agents);
         actionExecutor.preProcess();
 
         // determine random fail

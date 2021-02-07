@@ -5,6 +5,11 @@
     "agentA3" : {"entity" : "connectionA3", "team" : "A", "class" : "DeliveryCar"},
     "agentA4" : {"entity" : "connectionA4", "team" : "A", "class" : "DeliveryCar"},
     "agentA5" : {"entity" : "connectionA5", "team" : "A", "class" : "DeliveryCar"},
-    "agentA6" : {"entity" : "connectionA6", "team" : "A", "class" : "DeliveryCar"}
+    "agentA6" : {"entity" : "connectionA6", "team" : "A", "class" : "DeliveryCar"},
+    "agentA7" : {"entity" : "connectionA7", "team" : "A", "class" : "DeliveryCar"},
+    "agentA8" : {"entity" : "connectionA8", "team" : "A", "class" : "DeliveryCar"},
+    "agentA9" : {"entity" : "connectionA9", "team" : "A", "class" : "DeliveryCar"},
+    "agentA10" : {"entity" : "connectionA10", "team" : "A", "class" : "DeliveryCar"},
+    "agentA11" : {"entity" : "connectionA11", "team" : "A", "class" : "DeliveryCar"}
   }
 }

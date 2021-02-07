@@ -22,14 +22,14 @@
       "centerLon" : 2.3209,
       "proximity" : 5,
       "cellSize" : 200,
-      "randomSeed" : 28,
+      "randomSeed" : 38,
       "randomFail" : 0,
       "gotoCost" : 1,
       "rechargeRate" : 0.3,
 
       "upgrades" : "$(upgrades/upgrades.json)",
       "roles" : "$(roles/roles.json)",
-      "entities" : [{"evilcorphq" : 1}, {"truck" : 5}],
+      "entities" : [{"evilcorphq" : 1}, {"truck" : 10}],
       "generate" : "$(generate/generate_assignment01.json)"
     }
   ],
